@@ -1,0 +1,19 @@
+# dependencies
+/server/node_modules
+/client/node_modules
+
+# testing
+/client/coverage
+
+# production
+/client/build
+
+# misc
+/client/.DS_Store
+/server/.env
+/client/npm-debug.log*
+/client/yarn-debug.log*
+/client/yarn-error.log*
+
+# settings
+/package-lock.json
