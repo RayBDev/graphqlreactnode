@@ -14,6 +14,13 @@ module.exports = {
          fontFamily: {
             sans: ['Lato', ...defaultTheme.fontFamily.sans], //Adding a font to the font-sans class that is defined in tailwindStyles.css
          },
+         fontWeight: {
+            thin: 100,
+            light: 300,
+            normal: 400,
+            bold: 700,
+            black: 900, //Only adding the available Lato font sizes
+         },
          colors: {
             primary: colors.indigo,
             secondary: colors.yellow,
