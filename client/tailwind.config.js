@@ -28,7 +28,12 @@ module.exports = {
          },
       },
    },
-   variants: {},
+   variants: {
+      extend: {
+         opacity: ['disabled'],
+         backgroundColor: ['disabled'],
+      },
+   },
    plugins: [
       require('@tailwindcss/typography'), //Plugin for 'prose' class to style articles (or don't add it and style everything manually). npm install @tailwindcss/typography
       require('@tailwindcss/forms'), //Resets forms
