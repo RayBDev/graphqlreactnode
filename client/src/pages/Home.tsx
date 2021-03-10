@@ -38,7 +38,7 @@ function Home(): React.ReactElement {
    const updateUserName = () => {
       dispatch({
          type: 'LOGGED_IN_USER',
-         payload: { user: 'Ray Bernard' },
+         payload: { user: { name: 'Ray Bernard' } },
       });
    };
 

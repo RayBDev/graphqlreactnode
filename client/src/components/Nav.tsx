@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+import { auth } from '../firebase';
+import { AuthContext } from '../context/authContext';
 
 const Nav = (): React.ReactElement => {
+   const { state, dispatch } = useContext(AuthContext);
    const [showMobileLinks, setShowMobileLinks] = useState(false);
+
+   const history = useHistory();
+
+   const { user } = state;
+
+   const logout = () => {
+      auth.signOut();
+      dispatch({
+         type: 'LOGGED_IN_USER',
+         payload: null,
+      });
+      history.push('/login');
+   };
 
    const toggleMobileLinks = () => {
       setShowMobileLinks((prevState) => !prevState);
@@ -29,24 +45,39 @@ const Nav = (): React.ReactElement => {
                showMobileLinks ? 'translate-y-0' : '-translate-y-56'
             }`}
          >
-            <li
-               className={`md:inline-block px-3 pb-3 pt-5 md:p-2 border-b-2 border-blue-900 md:border-none ${
-                  showMobileLinks ? 'block' : 'hidden'
-               }`}
-            >
-               <Link to="/login" className="hover:text-blue-500">
-                  Login
-               </Link>
-            </li>
-            <li
-               className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
-                  showMobileLinks ? 'block' : 'hidden'
-               }`}
-            >
-               <Link to="/register" className="hover:text-blue-500">
-                  Register
-               </Link>
-            </li>
+            {!user && (
+               <>
+                  <li
+                     className={`md:inline-block px-3 pb-3 pt-5 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                        showMobileLinks ? 'block' : 'hidden'
+                     }`}
+                  >
+                     <Link to="/login" className="hover:text-blue-500">
+                        Login
+                     </Link>
+                  </li>
+                  <li
+                     className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                        showMobileLinks ? 'block' : 'hidden'
+                     }`}
+                  >
+                     <Link to="/register" className="hover:text-blue-500">
+                        Register
+                     </Link>
+                  </li>
+               </>
+            )}
+            {user && (
+               <li
+                  className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                     showMobileLinks ? 'block' : 'hidden'
+                  }`}
+               >
+                  <a href="/login" onClick={logout} className="hover:text-blue-500">
+                     Logout
+                  </a>
+               </li>
+            )}
          </ul>
          <div
             className={`transform md:transform-none transition-all w-full md:w-auto ${

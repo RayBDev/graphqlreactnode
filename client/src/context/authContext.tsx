@@ -1,27 +1,36 @@
-import React, { useReducer, createContext } from 'react';
+import React, { useReducer, createContext, useEffect } from 'react';
+import { auth } from '../firebase';
 
 type ActionPayload = {
-   /** The user provided by the dispatched action's payload */
-   user: string;
+   /** The user email and token provided by the dispatched action's payload */
+   user?: {
+      name?: string;
+      email?: string | null | undefined;
+      token?: string | undefined;
+   };
 };
 
 type Action = {
    /** The action type that tells the Reducer what action needs to be performed before returning the new state */
    type: 'LOGGED_IN_USER' | 'LOGGED_OUT_USER';
    /** The action payload that gives the Reducer the necessary data that it needs to incorporate to return the new state */
-   payload: ActionPayload;
+   payload: ActionPayload | null | undefined;
 };
 
 type State = {
-   /** The user name that lives in the state */
-   user: string;
+   /** The user's email and token that lives in the state */
+   user?: {
+      name?: string;
+      email?: string | null | undefined;
+      token?: string | undefined;
+   };
 };
 
 // reducer
 const firebaseReducer = (state: State, action: Action): State => {
    switch (action.type) {
       case 'LOGGED_IN_USER':
-         return { ...state, user: action.payload.user };
+         return { ...state, user: action.payload?.user };
       default:
          return state;
    }
@@ -29,7 +38,10 @@ const firebaseReducer = (state: State, action: Action): State => {
 
 // state
 const initialState: State = {
-   user: '',
+   user: {
+      email: '',
+      token: '',
+   },
 };
 
 type ContextType = {
@@ -50,6 +62,26 @@ type ComponentWithChildProps = React.PropsWithChildren<{ example?: string }>;
 // context provider
 const AuthProvider = ({ children }: ComponentWithChildProps): React.ReactElement => {
    const [state, dispatch] = useReducer(firebaseReducer, initialState);
+
+   useEffect(() => {
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+         if (user) {
+            const idTokenResult = await user?.getIdTokenResult();
+
+            dispatch({
+               type: 'LOGGED_IN_USER',
+               payload: { user: { email: user.email, token: idTokenResult.token } },
+            });
+         } else {
+            dispatch({
+               type: 'LOGGED_IN_USER',
+               payload: null,
+            });
+         }
+      });
+      // cleanup
+      return () => unsubscribe();
+   }, []);
 
    const value = { state, dispatch };
    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -10,12 +10,13 @@ const Register = (): React.ReactElement => {
       e.preventDefault();
       setLoading(true);
       const config = {
-         url: `${process.env.REACT_APP_CONFIRMATION_EMAIL_REDIRECT}?email=${email}`,
+         url: `${process.env.REACT_APP_CONFIRMATION_EMAIL_REDIRECT}`,
          handleCodeInApp: true,
       };
       try {
          await auth.sendSignInLinkToEmail(email, config);
          // show toast notification to user about email sent
+         window.localStorage.setItem('emailForRegistration', email);
          toast.success(`Email has been sent to ${email}. Click the link in your email to complete your registration.`);
       } catch (error) {
          // show toast notification to user about incorrect email formatting
@@ -32,7 +33,9 @@ const Register = (): React.ReactElement => {
          {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Register</h4>}
          <form onSubmit={handleSubmit} className="mt-5">
             <div>
-               <label htmlFor="email">Email Address</label>
+               <label htmlFor="email" className="text-primary-300">
+                  Email Address
+               </label>
                <input
                   id="email"
                   type="email"

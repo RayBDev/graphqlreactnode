@@ -49,6 +49,6 @@
 
    /*These primary colors were created in the theme in tailwind.config.js*/
    .btn-primary {
-      @apply bg-primary-500 text-white hover:bg-primary-700 focus:ring-primary-400;
+      @apply bg-primary-500 text-white hover:bg-primary-700 focus:ring-primary-400 disabled:bg-white disabled:text-primary-500 disabled:cursor-not-allowed;
    }
 }
