@@ -13,23 +13,49 @@ const Login = (): React.ReactElement => {
    const history = useHistory();
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      // Prevent default submit button behavior
       e.preventDefault();
+      // Set Loading state to true for UX
       setLoading(true);
-      try {
-         const result = await auth.signInWithEmailAndPassword(email, password);
-         const { user } = result;
-         const idTokenResult = await user?.getIdTokenResult();
 
-         dispatch({
-            type: 'LOGGED_IN_USER',
-            payload: { user: { email: user?.email, token: idTokenResult?.token } },
-         });
+      // Begin async try catch for signing in
+      try {
+         // Attempt to sign in with user provided email and password
+         const userCredentials = await auth.signInWithEmailAndPassword(email, password);
+         const { user } = userCredentials;
+
+         // Check if user's email has been verified
+         if (user?.emailVerified) {
+            // Get the user ID token and dispatch it to the AuthContext reducer
+            const idTokenResult = await user?.getIdTokenResult();
+
+            dispatch({
+               type: 'LOGGED_IN_USER',
+               payload: { user: { email: user?.email, token: idTokenResult?.token } },
+            });
+
+            // send user info to mongodb to either update/create
+
+            // If all is successful, send the user to the home page
+            history.push('/');
+         } else {
+            // If user's email hasn't been verified, sign them out, show a toast error and set loading to false
+            await auth.signOut();
+            setLoading(false);
+            return toast.error('Please click the link in your email to verify your email address.');
+         }
 
          // send user info to mongodb to either update/create
          history.push('/');
       } catch (error) {
-         console.log('login error', error);
-         toast.error(error.message);
+         // If user credentials are wrong, toast an error and set loading to false
+         if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password') {
+            toast.error('Your email or password is incorrect. Please try again.');
+         } else {
+            toast.error('Your email was not found in our system. Please create an account on the Register page.');
+         }
+         setEmail('');
+         setPassword('');
          setLoading(false);
       }
    };
