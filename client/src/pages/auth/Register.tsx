@@ -19,11 +19,13 @@ const Register = (): React.ReactElement => {
       isLongEnough: false,
    });
 
+   // Capture the user password and run it through the imported validator function. It will return the same object shape as the passwordValidators state we created.
    const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPasswordValidators(passwordValidation(e.target.value));
       setPassword(e.target.value);
    };
 
+   // Loop through the passwordValidators state and set it to false if any of the validators are false. Also break out of the loop if any are false.
    let isPasswordValid = false;
    for (const key in passwordValidators) {
       if (passwordValidators[key] === false) {
@@ -37,9 +39,14 @@ const Register = (): React.ReactElement => {
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
-      // Simple falsy blank check for email/password fields
+      // Falsy blank check for email/password fields as well as password validation check
       if (!email || !password) {
          toast.error('Email and password is required');
+         return setLoading(false);
+      } else if (!isPasswordValid) {
+         toast.error('Password does not meet the complexity requirements');
+         setPassword('');
+         setPasswordValidators(passwordValidation(''));
          return setLoading(false);
       }
       // Redirection config for the verification email
@@ -76,6 +83,7 @@ const Register = (): React.ReactElement => {
       <div className="container p-5 mt-24">
          {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Register</h4>}
          <form onSubmit={handleSubmit} className="mt-5">
+            {/*Email input that's connected to its own piece of onChange state and is disabled when loading state is true */}
             <div className="mb-3">
                <label htmlFor="email" className="text-primary-300">
                   Email Address
@@ -90,6 +98,7 @@ const Register = (): React.ReactElement => {
                   disabled={loading}
                />
             </div>
+            {/*Password input that's connected to its own piece of onChange state and is disabled when loading state is true */}
             <div className="mb-3">
                <label htmlFor="password" className="text-primary-300">
                   Password
@@ -104,6 +113,7 @@ const Register = (): React.ReactElement => {
                   disabled={loading}
                />
             </div>
+            {/*Password requirements display so user knows which requirements they still need to hit. The validators is read from state.*/}
             <div className="mb-3">
                <h5 className="font-bold text-base text-primary-300 mb-2">Password Requirements</h5>
                <ul>
@@ -139,6 +149,7 @@ const Register = (): React.ReactElement => {
                   </li>
                </ul>
             </div>
+            {/*Submit button that is only enabled once the email and password have been filled in, loading state is false and the password meets complexity requirements*/}
             <button className="btn btn-primary" disabled={!email || loading || !password || !isPasswordValid}>
                Submit
             </button>

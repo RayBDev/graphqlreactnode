@@ -44,9 +44,6 @@ const Login = (): React.ReactElement => {
             setLoading(false);
             return toast.error('Please click the link in your email to verify your email address.');
          }
-
-         // send user info to mongodb to either update/create
-         history.push('/');
       } catch (error) {
          // If user credentials are wrong, toast an error and set loading to false
          if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password') {
@@ -61,17 +58,21 @@ const Login = (): React.ReactElement => {
    };
 
    const googleLogin = async () => {
-      const result = await auth.signInWithPopup(googleAuthProvider);
-      const { user } = result;
-      const idTokenResult = await user?.getIdTokenResult();
+      try {
+         const result = await auth.signInWithPopup(googleAuthProvider);
+         const { user } = result;
+         const idTokenResult = await user?.getIdTokenResult();
 
-      dispatch({
-         type: 'LOGGED_IN_USER',
-         payload: { user: { email: user?.email, token: idTokenResult?.token } },
-      });
+         dispatch({
+            type: 'LOGGED_IN_USER',
+            payload: { user: { email: user?.email, token: idTokenResult?.token } },
+         });
 
-      // send user info to mongodb to either update/create
-      history.push('/');
+         // send user info to mongodb to either update/create
+         history.push('/');
+      } catch (error) {
+         toast.error('An error occurred with your Google login. Please try again.');
+      }
    };
 
    return (

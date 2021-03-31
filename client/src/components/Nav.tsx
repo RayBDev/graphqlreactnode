@@ -45,7 +45,7 @@ const Nav = (): React.ReactElement => {
                showMobileLinks ? 'translate-y-0' : '-translate-y-56'
             }`}
          >
-            {!user && (
+            {!user?.token && (
                <>
                   <li
                      className={`md:inline-block px-3 pb-3 pt-5 md:p-2 border-b-2 border-blue-900 md:border-none ${
@@ -67,7 +67,7 @@ const Nav = (): React.ReactElement => {
                   </li>
                </>
             )}
-            {user && (
+            {user?.token && (
                <li
                   className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
                      showMobileLinks ? 'block' : 'hidden'

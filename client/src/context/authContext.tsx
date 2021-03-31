@@ -64,7 +64,8 @@ const AuthProvider = ({ children }: ComponentWithChildProps): React.ReactElement
    const [state, dispatch] = useReducer(firebaseReducer, initialState);
 
    useEffect(() => {
-      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      // Check if user is signed in when app loads and dispatch email and token otherwise dispatch null
+      auth.onAuthStateChanged(async (user) => {
          if (user) {
             const idTokenResult = await user?.getIdTokenResult();
 
@@ -79,8 +80,6 @@ const AuthProvider = ({ children }: ComponentWithChildProps): React.ReactElement
             });
          }
       });
-      // cleanup
-      return () => unsubscribe();
    }, []);
 
    const value = { state, dispatch };
