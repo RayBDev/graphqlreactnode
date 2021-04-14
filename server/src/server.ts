@@ -1,15 +1,20 @@
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
-const express = require('express');
-const { ApolloServer } = require('apollo-server-express');
+import 'dotenv/config';
+
+import express from 'express';
+import { ApolloServer } from 'apollo-server-express';
 //const http = require('http');
-const path = require('path');
-const mongoose = require('mongoose');
+//const path = require('path');
+import depthLimit from 'graphql-depth-limit';
+import compression from 'compression';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
 // const { makeExecutableSchema } = require('graphql-tools');
-const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
-const { loadFilesSync } = require('@graphql-tools/load-files');
+// const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
+// const { loadFilesSync } = require('@graphql-tools/load-files');
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
+const { authCheck } = require('./helpers/auth');
 
 // Create Express Server
 const app = express();
@@ -17,7 +22,7 @@ const app = express();
 // DB Connection Setup
 const db = async () => {
   try {
-    await mongoose.connect(process.env.DATABASE, {
+    await mongoose.connect(process.env.DATABASE!, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true,
@@ -33,15 +38,21 @@ const db = async () => {
 db();
 
 // Merge Resolvers and typeDefs
-const typeDefs = mergeTypeDefs(loadFilesSync(path.join(__dirname, './schema')));
+/* const typeDefs = mergeTypeDefs(loadFilesSync(path.join(__dirname, './types')));
 const resolvers = mergeResolvers(
   loadFilesSync(path.join(__dirname, './resolvers'))
-);
+); */
 
-// graphql server
+// Add cors and gzip compression for compression as noted here https://expressjs.com/en/advanced/best-practice-performance.html
+app.use('*', cors());
+app.use(compression());
+
+// graphql server with validation rules
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
+  context: ({ req, res }) => ({ req, res }),
+  validationRules: [depthLimit(7)],
 });
 
 // applyMiddleware method connect ApolloServer to a HTTP framework like express at /graphql endpoint
@@ -52,7 +63,7 @@ apolloServer.applyMiddleware({ app });
 //const httpServer = http.createServer(app);
 
 // REST Endpoint
-app.get('/rest', function (req, res) {
+app.get('/rest', authCheck, function (req, res) {
   res.json({
     data: 'you hit the rest endpoint',
   });

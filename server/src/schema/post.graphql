@@ -1,0 +1,38 @@
+type Post {
+  """
+  ID of Post
+  """
+  id: ID!
+  """
+  Title of Post
+  """
+  title: String!
+  """
+  Description of Post
+  """
+  description: String!
+}
+
+# input type
+input PostInput {
+  title: String!
+  description: String!
+}
+
+type Query {
+  """
+  Returns the total number of posts
+  """
+  totalPosts: Int!
+  """
+  Returns all posts
+  """
+  allPosts: [Post!]!
+}
+
+type Mutation {
+  """
+  Add a new post
+  """
+  newPost(input: PostInput!): Post!
+}

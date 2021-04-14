@@ -1,3 +1,5 @@
+import { IResolvers } from 'graphql-tools';
+
 const { posts } = require('../temp');
 
 // queries
@@ -5,7 +7,7 @@ const totalPosts = () => posts.length;
 const allPosts = () => posts;
 
 // mutations
-const newPost = (parent, args) => {
+const newPost = (_: void, args: any) => {
   console.log(args);
   // create a new post object
   const post = {
@@ -17,7 +19,8 @@ const newPost = (parent, args) => {
   return post;
 };
 
-module.exports = {
+// Build out the resolver map and set it's type
+const resolverMap: IResolvers = {
   Query: {
     totalPosts,
     allPosts,
@@ -26,3 +29,5 @@ module.exports = {
     newPost,
   },
 };
+
+module.exports = resolverMap;

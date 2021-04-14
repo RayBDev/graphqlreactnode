@@ -1,4 +1,4 @@
-const posts = [
+exports.posts = [
   {
     id: 1,
     title: 'First Post',
@@ -10,7 +10,3 @@ const posts = [
     description: 'Second post description',
   },
 ];
-
-module.exports = {
-  posts,
-};

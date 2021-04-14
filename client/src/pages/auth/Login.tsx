@@ -78,7 +78,7 @@ const Login = (): React.ReactElement => {
    return (
       <div className="container p-5 mt-24">
          {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Login</h4>}
-         <button className="btn btn-primary mt-5" onClick={googleLogin}>
+         <button className="btn btn-warning mt-5" onClick={googleLogin}>
             Login with google
          </button>
          <form onSubmit={handleSubmit} className="mt-5">

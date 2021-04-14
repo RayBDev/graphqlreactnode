@@ -25,6 +25,7 @@ module.exports = {
             primary: colors.indigo,
             secondary: colors.yellow,
             neutral: colors.gray,
+            warning: colors.red,
          },
       },
    },
