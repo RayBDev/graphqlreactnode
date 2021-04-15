@@ -5,5 +5,6 @@ declare namespace NodeJS {
     PORT: number;
     DATABASE_CLOUD: string;
     DATABASE: string;
+    GOOGLE_APPLICATION_CREDENTIALS: string;
   }
 }

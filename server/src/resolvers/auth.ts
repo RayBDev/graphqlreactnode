@@ -1,7 +1,7 @@
 const { authCheck } = require('../helpers/auth');
 
-const me = (_: void, args: any, context: any) => {
-  authCheck(context.req, context.res);
+const me = async (_: void, args: any, context: any) => {
+  await authCheck(context.req);
   return 'Ray';
 };
 

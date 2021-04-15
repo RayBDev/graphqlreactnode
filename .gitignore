@@ -2,6 +2,9 @@
 /server/node_modules
 /client/node_modules
 
+#config
+/server/src/config
+
 # testing
 /client/coverage
 
@@ -11,6 +14,7 @@
 # misc
 /client/.DS_Store
 /server/.env
+/client/.env
 /client/npm-debug.log*
 /client/yarn-debug.log*
 /client/yarn-error.log*

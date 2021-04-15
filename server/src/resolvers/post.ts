@@ -1,10 +1,14 @@
 import { IResolvers } from 'graphql-tools';
 
 const { posts } = require('../temp');
+const { authCheck } = require('../helpers/auth');
 
 // queries
 const totalPosts = () => posts.length;
-const allPosts = () => posts;
+const allPosts = async (_: void, args: any, { req }: { req: any }) => {
+  await authCheck(req);
+  return posts;
+};
 
 // mutations
 const newPost = (_: void, args: any) => {
