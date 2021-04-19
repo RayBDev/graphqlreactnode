@@ -1,7 +1,6 @@
 import { IResolvers } from 'graphql-tools';
-
-const { posts } = require('../temp');
-const { authCheck } = require('../helpers/auth');
+import { posts } from '../temp';
+import { authCheck } from '../helpers/auth';
 
 // queries
 const totalPosts = () => posts.length;
