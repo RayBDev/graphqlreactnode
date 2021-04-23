@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { auth } from '../../firebase';
 import { toast } from 'react-toastify';
 
-import passwordValidation from './passwordValidation';
+import AuthForm from '../../components/forms/AuthForm';
+import passwordValidation from '../../helpers/passwordValidation';
 
 const Register = (): React.ReactElement => {
    const [email, setEmail] = useState('');
@@ -35,6 +36,10 @@ const Register = (): React.ReactElement => {
          isPasswordValid = true;
       }
    }
+
+   const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEmail(e.target.value);
+   };
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -82,78 +87,19 @@ const Register = (): React.ReactElement => {
    return (
       <div className="container p-5 mt-24">
          {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Register</h4>}
-         <form onSubmit={handleSubmit} className="mt-5">
-            {/*Email input that's connected to its own piece of onChange state and is disabled when loading state is true */}
-            <div className="mb-3">
-               <label htmlFor="email" className="text-primary-300">
-                  Email Address
-               </label>
-               <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
-                  placeholder="Enter Email"
-                  disabled={loading}
-               />
-            </div>
-            {/*Password input that's connected to its own piece of onChange state and is disabled when loading state is true */}
-            <div className="mb-3">
-               <label htmlFor="password" className="text-primary-300">
-                  Password
-               </label>
-               <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={onPasswordChange}
-                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                  placeholder="Enter Password"
-                  disabled={loading}
-               />
-            </div>
-            {/*Password requirements display so user knows which requirements they still need to hit. The validators is read from state.*/}
-            <div className="mb-3">
-               <h5 className="font-bold text-base text-primary-300 mb-2">Password Requirements</h5>
-               <ul>
-                  <li>
-                     <span className="inline-block w-5">
-                        {passwordValidators.hasLowercase ? <span className="text-green-600">✓</span> : '•'}
-                     </span>
-                     At least one lowercase letter
-                  </li>
-                  <li>
-                     <span className="inline-block w-5">
-                        {passwordValidators.hasUppercase ? <span className="text-green-600">✓</span> : '•'}
-                     </span>
-                     At least one uppercase letter
-                  </li>
-                  <li>
-                     <span className="inline-block w-5">
-                        {passwordValidators.hasNumber ? <span className="text-green-600">✓</span> : '•'}
-                     </span>
-                     At least one number
-                  </li>
-                  <li>
-                     <span className="inline-block w-5">
-                        {passwordValidators.hasSpecialChar ? <span className="text-green-600">✓</span> : '•'}
-                     </span>
-                     At least one special character
-                  </li>
-                  <li>
-                     <span className="inline-block w-5">
-                        {passwordValidators.isLongEnough ? <span className="text-green-600">✓</span> : '•'}
-                     </span>
-                     Between 8 and 32 characters long
-                  </li>
-               </ul>
-            </div>
-            {/*Submit button that is only enabled once the email and password have been filled in, loading state is false and the password meets complexity requirements*/}
-            <button className="btn btn-primary" disabled={!email || loading || !password || !isPasswordValid}>
-               Submit
-            </button>
-         </form>
+         <AuthForm
+            email={email}
+            onEmailChange={onEmailChange}
+            showEmailField={true}
+            password={password}
+            onPasswordChange={onPasswordChange}
+            showPasswordField={true}
+            passwordValidators={passwordValidators}
+            isPasswordValid={isPasswordValid}
+            showPasswordValidation={true}
+            loading={loading}
+            handleSubmit={handleSubmit}
+         />
       </div>
    );
 };

@@ -25,7 +25,9 @@ const Nav = (): React.ReactElement => {
    };
    return (
       <nav className="flex flex-wrap justify-between items-center p-5 w-full bg-gray-200 shadow-sm border-b fixed top-0">
-         <img src="http://acmelogos.com/images/logo-1.svg" alt="ACME" width="120" />
+         <Link to="/">
+            <img src="http://acmelogos.com/images/logo-1.svg" alt="ACME" width="120" />
+         </Link>
          <div className="flex md:hidden">
             <button onClick={toggleMobileLinks}>
                <img
@@ -68,15 +70,26 @@ const Nav = (): React.ReactElement => {
                </>
             )}
             {user?.token && (
-               <li
-                  className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
-                     showMobileLinks ? 'block' : 'hidden'
-                  }`}
-               >
-                  <a href="/login" onClick={logout} className="hover:text-blue-500">
-                     Logout
-                  </a>
-               </li>
+               <>
+                  <li
+                     className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                        showMobileLinks ? 'block' : 'hidden'
+                     }`}
+                  >
+                     <a href="/profile" onClick={logout} className="hover:text-blue-500">
+                        Profile
+                     </a>
+                  </li>
+                  <li
+                     className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                        showMobileLinks ? 'block' : 'hidden'
+                     }`}
+                  >
+                     <a href="/login" onClick={logout} className="hover:text-blue-500">
+                        Logout
+                     </a>
+                  </li>
+               </>
             )}
          </ul>
          <div

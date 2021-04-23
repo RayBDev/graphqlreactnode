@@ -3,6 +3,17 @@ import { AuthContext } from '../../context/authContext';
 import { useHistory } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { auth, googleAuthProvider } from '../../firebase';
+import { useMutation, gql } from '@apollo/client';
+import AuthForm from '../../components/forms/AuthForm';
+
+const USER_CREATE = gql`
+   mutation {
+      userCreate {
+         username
+         email
+      }
+   }
+`;
 
 const Login = (): React.ReactElement => {
    const { dispatch } = useContext(AuthContext);
@@ -11,6 +22,16 @@ const Login = (): React.ReactElement => {
    const [loading, setLoading] = useState(false);
 
    const history = useHistory();
+
+   const [userCreate] = useMutation(USER_CREATE);
+
+   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPassword(e.target.value);
+   };
+
+   const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEmail(e.target.value);
+   };
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       // Prevent default submit button behavior
@@ -35,14 +56,17 @@ const Login = (): React.ReactElement => {
             });
 
             // send user info to mongodb to either update/create
+            await userCreate();
 
             // If all is successful, send the user to the home page
-            history.push('/');
+            history.push('/profile');
          } else {
             // If user's email hasn't been verified, sign them out, show a toast error and set loading to false
             await auth.signOut();
+            setEmail('');
+            setPassword('');
             setLoading(false);
-            return toast.error('Please click the link in your email to verify your email address.');
+            toast.error('Please click the link in your email to verify your email address.');
          }
       } catch (error) {
          // If user credentials are wrong, toast an error and set loading to false
@@ -69,7 +93,9 @@ const Login = (): React.ReactElement => {
          });
 
          // send user info to mongodb to either update/create
-         history.push('/');
+         await userCreate();
+
+         history.push('/profile');
       } catch (error) {
          toast.error('An error occurred with your Google login. Please try again.');
       }
@@ -81,39 +107,17 @@ const Login = (): React.ReactElement => {
          <button className="btn btn-warning mt-5" onClick={googleLogin}>
             Login with google
          </button>
-         <form onSubmit={handleSubmit} className="mt-5">
-            <div className="mb-3">
-               <label htmlFor="email" className="text-primary-300">
-                  Email Address
-               </label>
-               <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
-                  placeholder="Enter Email"
-                  disabled={loading}
-               />
-            </div>
-            <div className="mb-3">
-               <label htmlFor="email" className="text-primary-300">
-                  Password
-               </label>
-               <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                  placeholder="Enter Password"
-                  disabled={loading}
-               />
-            </div>
-            <button className="btn btn-primary" disabled={!email || loading || !password}>
-               Submit
-            </button>
-         </form>
+         <AuthForm
+            email={email}
+            onEmailChange={onEmailChange}
+            showEmailField={true}
+            password={password}
+            onPasswordChange={onPasswordChange}
+            showPasswordField={true}
+            showForgotPassword={true}
+            loading={loading}
+            handleSubmit={handleSubmit}
+         />
       </div>
    );
 };

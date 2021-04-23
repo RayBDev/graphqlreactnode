@@ -13,11 +13,12 @@
 
 # misc
 /client/.DS_Store
-/server/.env
-/client/.env
+/server/src/.env
+/client/src/.env
 /client/npm-debug.log*
 /client/yarn-debug.log*
 /client/yarn-error.log*
+/client/src/firebase.js
 
 # settings
 /package-lock.json
