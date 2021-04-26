@@ -1,14 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Route, Link } from 'react-router-dom';
 import { AuthContext } from '../context/authContext';
+import { auth } from '../firebase';
 
 const PrivateRoute = ({ ...rest }): React.ReactElement => {
    const { state } = useContext(AuthContext);
    const [user, setUser] = useState(false);
+   const [userHasPasswordEnabledLogin, setUserHasPasswordEnabledLogin] = useState(false);
 
    useEffect(() => {
       state.user?.token ? setUser(true) : setUser(false);
    }, [state.user?.token]);
+
+   useEffect(() => {
+      auth.currentUser?.providerData.forEach((loginProviderObject) => {
+         if (loginProviderObject?.providerId === 'password') setUserHasPasswordEnabledLogin(true);
+      });
+   }, []);
 
    const navLinks = (
       <aside>
@@ -16,9 +24,11 @@ const PrivateRoute = ({ ...rest }): React.ReactElement => {
             <li className="text-primary-400 font-bold mb-2">
                <Link to="/profile">Profile</Link>
             </li>
-            <li className="text-primary-400 font-bold mb-2">
-               <Link to="/password/update">Password</Link>
-            </li>
+            {userHasPasswordEnabledLogin && (
+               <li className="text-primary-400 font-bold mb-2">
+                  <Link to="/password/update">Password</Link>
+               </li>
+            )}
             <li className="text-primary-400 font-bold mb-2">
                <Link to="/post/create">Post</Link>
             </li>

@@ -7,18 +7,9 @@ import passwordValidation from '../../helpers/passwordValidation';
 const PasswordUpdate = (): React.ReactElement => {
    const [oldPassword, setOldPassword] = useState('');
    const [newPassword, setNewPassword] = useState('');
+   const [confirmNewPassword, setConfirmNewPassword] = useState('');
    const [loading, setLoading] = useState(false);
    const [userHasPasswordEnabledLogin, setUserHasPasswordEnabledLogin] = useState(false);
-
-   useEffect(() => {
-      auth.currentUser?.providerData.forEach((loginProviderObject) => {
-         if (loginProviderObject?.providerId === 'password') setUserHasPasswordEnabledLogin(true);
-      });
-   }, []);
-
-   const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setOldPassword(e.target.value);
-   };
 
    // Type set for password validators
    type PasswordValidators = {
@@ -31,7 +22,34 @@ const PasswordUpdate = (): React.ReactElement => {
       hasNumber: false,
       hasSpecialChar: false,
       isLongEnough: false,
+      passwordsMatch: false,
    });
+
+   useEffect(() => {
+      auth.currentUser?.providerData.forEach((loginProviderObject) => {
+         if (loginProviderObject?.providerId === 'password') setUserHasPasswordEnabledLogin(true);
+      });
+   }, []);
+
+   const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setOldPassword(e.target.value);
+   };
+
+   const onConfirmNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setConfirmNewPassword(e.target.value);
+   };
+
+   useEffect(() => {
+      if (confirmNewPassword !== '' && newPassword === confirmNewPassword) {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: true };
+         });
+      } else {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: false };
+         });
+      }
+   }, [confirmNewPassword]);
 
    // Validate the password each time user types a character
    const onNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,37 +76,34 @@ const PasswordUpdate = (): React.ReactElement => {
          toast.error('Your old password and a new valid password is required');
          return setLoading(false);
       }
+      try {
+         // Get current logged in user and update their password
+         const user = auth.currentUser;
 
-      if (userHasPasswordEnabledLogin) {
-         try {
-            // Get current logged in user and update their password
-            const user = auth.currentUser;
-
-            if (user?.email) {
-               try {
-                  const credential = emailAuthProvider.credential(user?.email, oldPassword);
-                  await user.reauthenticateWithCredential(credential);
-               } catch (error) {
-                  toast.error('Your old password is incorrect. Please try again');
-                  setLoading(false);
-                  return setOldPassword('');
-               }
-
-               await user?.updatePassword(newPassword);
-
+         if (user?.email) {
+            try {
+               const credential = emailAuthProvider.credential(user?.email, oldPassword);
+               await user.reauthenticateWithCredential(credential);
+            } catch (error) {
+               toast.error('Your old password is incorrect. Please try again');
                setLoading(false);
-               setOldPassword('');
-               setNewPassword('');
-               // Let user know all went well
-               toast.success('Your password has been changed successfully!');
+               return setOldPassword('');
             }
-         } catch (error) {
-            // Set loading to false to enable all fields again and provide appropriate errors
+
+            await user?.updatePassword(newPassword);
+
             setLoading(false);
             setOldPassword('');
             setNewPassword('');
-            toast.error('Password reset error:', error.message);
+            // Let user know all went well
+            toast.success('Your password has been changed successfully!');
          }
+      } catch (error) {
+         // Set loading to false to enable all fields again and provide appropriate errors
+         setLoading(false);
+         setOldPassword('');
+         setNewPassword('');
+         toast.error('Password reset error:', error.message);
       }
    };
 
@@ -104,7 +119,7 @@ const PasswordUpdate = (): React.ReactElement => {
          {userHasPasswordEnabledLogin && (
             <form onSubmit={handleSubmit} className="mt-5">
                <div className="mb-3">
-                  <label htmlFor="email" className="text-primary-300">
+                  <label htmlFor="email" className="text-red-500">
                      Old Password
                   </label>
                   <input
@@ -132,27 +147,57 @@ const PasswordUpdate = (): React.ReactElement => {
                   />
                </div>
                <div className="mb-3">
+                  <label htmlFor="email" className="text-primary-300">
+                     Confirm New Password
+                  </label>
+                  <input
+                     id="password"
+                     type="password"
+                     value={confirmNewPassword}
+                     onChange={onConfirmNewPasswordChange}
+                     className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
+                     placeholder="Re-Enter New Password"
+                     disabled={loading}
+                  />
+               </div>
+               <div className="mb-3">
                   <h5 className="font-bold text-base text-primary-300 mb-2">Password Requirements</h5>
                   <ul>
                      <li>
-                        <span className="inline-block w-5">{passwordValidators.hasLowercase ? '✓' : '•'}</span>
+                        <span className="inline-block w-5">
+                           {passwordValidators.hasLowercase ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
                         At least one lowercase letter
                      </li>
                      <li>
-                        <span className="inline-block w-5">{passwordValidators.hasUppercase ? '✓' : '•'}</span>At least
-                        one uppercase letter
+                        <span className="inline-block w-5">
+                           {passwordValidators.hasUppercase ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
+                        At least one uppercase letter
                      </li>
                      <li>
-                        <span className="inline-block w-5">{passwordValidators.hasNumber ? '✓' : '•'}</span>At least one
-                        number
+                        <span className="inline-block w-5">
+                           {passwordValidators.hasNumber ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
+                        At least one number
                      </li>
                      <li>
-                        <span className="inline-block w-5">{passwordValidators.hasSpecialChar ? '✓' : '•'}</span>At
-                        least one special character
+                        <span className="inline-block w-5">
+                           {passwordValidators.hasSpecialChar ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
+                        At least one special character
                      </li>
                      <li>
-                        <span className="inline-block w-5">{passwordValidators.isLongEnough ? '✓' : '•'}</span>Between 8
-                        and 32 characters long
+                        <span className="inline-block w-5">
+                           {passwordValidators.isLongEnough ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
+                        Between 8 and 32 characters long
+                     </li>
+                     <li>
+                        <span className="inline-block w-5">
+                           {passwordValidators.passwordsMatch ? <span className="text-green-600">✓</span> : '•'}
+                        </span>
+                        Confirm password matches new password
                      </li>
                   </ul>
                </div>
