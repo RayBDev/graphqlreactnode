@@ -21,6 +21,7 @@ const PasswordReset = (): React.ReactElement => {
    const { dispatch } = useContext(AuthContext);
    const [email, setEmail] = useState('');
    const [password, setPassword] = useState('');
+   const [confirmPassword, setConfirmPassword] = useState('');
    const [loading, setLoading] = useState(false);
    const [userCreate] = useMutation(USER_CREATE);
 
@@ -35,6 +36,7 @@ const PasswordReset = (): React.ReactElement => {
       hasNumber: false,
       hasSpecialChar: false,
       isLongEnough: false,
+      passwordsMatch: false,
    });
 
    const history = useHistory();
@@ -48,6 +50,11 @@ const PasswordReset = (): React.ReactElement => {
    const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPasswordValidators(passwordValidation(e.target.value));
       setPassword(e.target.value);
+   };
+
+   // Confirm new password event handler
+   const onConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setConfirmPassword(e.target.value);
    };
 
    // Loop through the password validators in state and if any of them are false then make password invalid
@@ -64,6 +71,18 @@ const PasswordReset = (): React.ReactElement => {
    const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setEmail(e.target.value);
    };
+
+   useEffect(() => {
+      if (confirmPassword !== '' && password === confirmPassword) {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: true };
+         });
+      } else {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: false };
+         });
+      }
+   }, [confirmPassword]);
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -143,6 +162,8 @@ const PasswordReset = (): React.ReactElement => {
             password={password}
             onPasswordChange={onPasswordChange}
             showPasswordField={true}
+            confirmPassword={confirmPassword}
+            onConfirmPasswordChange={onConfirmPasswordChange}
             passwordValidators={passwordValidators}
             isPasswordValid={isPasswordValid}
             showPasswordValidation={true}

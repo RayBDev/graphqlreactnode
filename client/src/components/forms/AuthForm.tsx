@@ -48,6 +48,10 @@ type ConditionalPasswordProps =
 
 type ConditionalPasswordValidationProps =
    | {
+        /** Confirmation password from state that's evaluated against the new password entered. */
+        confirmPassword?: undefined;
+        /** Confirmation Password Field Change Event Handler */
+        onConfirmPasswordChange?: undefined;
         /** Password validation object stored in state containing booleans for every password validator */
         passwordValidators?: undefined;
         /** Is the password field validation required? */
@@ -56,6 +60,10 @@ type ConditionalPasswordValidationProps =
         showPasswordValidation?: never;
      }
    | {
+        /** Confirmation password from state that's evaluated against the new password entered. */
+        confirmPassword: string;
+        /** Confirmation Password Field Change Event Handler */
+        onConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
         /** Password validation object stored in state containing booleans for every password validator */
         passwordValidators: {
            [key: string]: boolean;
@@ -66,7 +74,29 @@ type ConditionalPasswordValidationProps =
         showPasswordValidation?: true;
      };
 
-type Props = RequiredProps & ConditionalEmailProps & ConditionalPasswordProps & ConditionalPasswordValidationProps;
+type ConditionalOldPasswordProps =
+   | {
+        /** User's Old Password from state */
+        oldPassword?: undefined;
+        /** OldPassword Field Change Event Handler */
+        onOldPasswordChange?: undefined;
+        /** Is the OldPassword field required? */
+        showOldPasswordField?: never;
+     }
+   | {
+        /** User's Old Password from state */
+        oldPassword: string;
+        /** Old Password Field Change Event Handler */
+        onOldPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        /** Is the Old Password field required? */
+        showOldPasswordField?: true;
+     };
+
+type Props = RequiredProps &
+   ConditionalEmailProps &
+   ConditionalPasswordProps &
+   ConditionalPasswordValidationProps &
+   ConditionalOldPasswordProps;
 
 const AuthForm = ({
    email,
@@ -78,9 +108,14 @@ const AuthForm = ({
    isPasswordValid,
    showPasswordField,
    showPasswordValidation,
+   confirmPassword,
+   onConfirmPasswordChange,
    loading,
    handleSubmit,
    showForgotPassword = false,
+   oldPassword,
+   onOldPasswordChange,
+   showOldPasswordField,
 }: Props): JSX.Element => {
    return (
       <form onSubmit={handleSubmit} className="mt-5">
@@ -97,6 +132,23 @@ const AuthForm = ({
                   onChange={onEmailChange}
                   className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
                   placeholder="Enter Email"
+                  disabled={loading || window.localStorage.getItem('emailForPasswordReset') ? true : false}
+               />
+            </div>
+         )}
+         {/*Old Password input that's connected to its own piece of onChange state and is disabled when loading state is true */}
+         {showOldPasswordField && (
+            <div className="mb-3">
+               <label htmlFor="oldPassword" className="text-red-500">
+                  Old Password
+               </label>
+               <input
+                  id="oldPassword"
+                  type="password"
+                  value={oldPassword}
+                  onChange={onOldPasswordChange}
+                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
+                  placeholder="Enter Old Password"
                   disabled={loading}
                />
             </div>
@@ -105,15 +157,32 @@ const AuthForm = ({
          {showPasswordField && (
             <div className="mb-3">
                <label htmlFor="password" className="text-primary-300">
-                  Password
+                  {showPasswordValidation ? 'New Password' : 'Password'}
                </label>
                <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={onPasswordChange}
-                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                  placeholder="Enter Password"
+                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
+                  placeholder={showPasswordValidation ? 'Enter New Password' : 'Enter Password'}
+                  disabled={loading}
+               />
+            </div>
+         )}
+         {/*Confirm the new password to help user avoid errors. This field is connected to its own piece of onChange state and is disabled when loading state is true.*/}
+         {showPasswordValidation && (
+            <div className="mb-3">
+               <label htmlFor="confirmPassword" className="text-primary-300">
+                  Confirm New Password
+               </label>
+               <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={onConfirmPasswordChange}
+                  className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300 disabled:bg-gray-100 disabled:opacity-70"
+                  placeholder="Re-Enter New Password"
                   disabled={loading}
                />
             </div>
@@ -153,6 +222,12 @@ const AuthForm = ({
                      </span>
                      Between 8 and 32 characters long
                   </li>
+                  <li>
+                     <span className="inline-block w-5">
+                        {passwordValidators?.passwordsMatch ? <span className="text-green-600">✓</span> : '•'}
+                     </span>
+                     New password matches confirm password
+                  </li>
                </ul>
             </div>
          )}
@@ -171,7 +246,7 @@ const AuthForm = ({
                   : false || loading || showPasswordField
                   ? !password
                   : false || showPasswordValidation
-                  ? !isPasswordValid
+                  ? !isPasswordValid || !confirmPassword
                   : false
             }
          >

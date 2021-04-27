@@ -47,7 +47,13 @@ const PrivateRoute = ({ ...rest }): React.ReactElement => {
       </div>
    );
 
-   return user ? renderContent() : <h4>Loading...</h4>;
+   return user ? (
+      renderContent()
+   ) : (
+      <div className="container mt-24">
+         <h4>Loading...</h4>
+      </div>
+   );
 };
 
 export default PrivateRoute;

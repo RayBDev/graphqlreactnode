@@ -3,11 +3,12 @@ import { auth, emailAuthProvider } from '../../firebase';
 import { toast } from 'react-toastify';
 
 import passwordValidation from '../../helpers/passwordValidation';
+import AuthForm from '../../components/forms/AuthForm';
 
 const PasswordUpdate = (): React.ReactElement => {
    const [oldPassword, setOldPassword] = useState('');
-   const [newPassword, setNewPassword] = useState('');
-   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+   const [password, setPassword] = useState('');
+   const [confirmPassword, setConfirmPassword] = useState('');
    const [loading, setLoading] = useState(false);
    const [userHasPasswordEnabledLogin, setUserHasPasswordEnabledLogin] = useState(false);
 
@@ -25,22 +26,26 @@ const PasswordUpdate = (): React.ReactElement => {
       passwordsMatch: false,
    });
 
+   // When component mounts, check if user has a password enabled login. This will be used to conditionally render the form fields.
    useEffect(() => {
       auth.currentUser?.providerData.forEach((loginProviderObject) => {
          if (loginProviderObject?.providerId === 'password') setUserHasPasswordEnabledLogin(true);
       });
    }, []);
 
+   // OnChange handler for the old password field
    const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setOldPassword(e.target.value);
    };
 
-   const onConfirmNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setConfirmNewPassword(e.target.value);
+   // OnChange handler for the confirm password field
+   const onConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setConfirmPassword(e.target.value);
    };
 
+   // Check whether the new password and confirm password fields match and set the state. This is check on component load and whenever confirm password changes.
    useEffect(() => {
-      if (confirmNewPassword !== '' && newPassword === confirmNewPassword) {
+      if (confirmPassword !== '' && password === confirmPassword) {
          setPasswordValidators((oldState) => {
             return { ...oldState, passwordsMatch: true };
          });
@@ -49,15 +54,15 @@ const PasswordUpdate = (): React.ReactElement => {
             return { ...oldState, passwordsMatch: false };
          });
       }
-   }, [confirmNewPassword]);
+   }, [confirmPassword]);
 
    // Validate the password each time user types a character
-   const onNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPasswordValidators(passwordValidation(e.target.value));
-      setNewPassword(e.target.value);
+      setPassword(e.target.value);
    };
 
-   // Loop through the password validators in state and if any of them are false then make password invalid
+   // Loop through the password validators in state and if any of them are false then make password invalid. Used to block the form submission
    let isPasswordValid = false;
    for (const key in passwordValidators) {
       if (passwordValidators[key] === false) {
@@ -68,33 +73,41 @@ const PasswordUpdate = (): React.ReactElement => {
       }
    }
 
+   // Submit button handler
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
       // Field validation in case user manually enables submit button
-      if (!oldPassword || !newPassword || !isPasswordValid) {
-         toast.error('Your old password and a new valid password is required');
+      if (!oldPassword || !password || !confirmPassword || !isPasswordValid) {
+         toast.error('Your old password, a new valid password and a confirm password is required');
          return setLoading(false);
       }
       try {
-         // Get current logged in user and update their password
+         // Get current logged in user
          const user = auth.currentUser;
 
+         // If there is a current user (which there should be since this is a protected route)
          if (user?.email) {
             try {
+               // Re-authenticate for security reasons using the old password
                const credential = emailAuthProvider.credential(user?.email, oldPassword);
                await user.reauthenticateWithCredential(credential);
             } catch (error) {
+               // If the old password is incorrect then throw an error and reset the old password field
                toast.error('Your old password is incorrect. Please try again');
                setLoading(false);
                return setOldPassword('');
             }
 
-            await user?.updatePassword(newPassword);
+            // User has been re-authenticated and we've checked password validity so now we can update their password with the new password
+            await user?.updatePassword(password);
 
+            // Reset the form and toast success
             setLoading(false);
             setOldPassword('');
-            setNewPassword('');
+            setPassword('');
+            setConfirmPassword('');
+            setPasswordValidators(passwordValidation(''));
             // Let user know all went well
             toast.success('Your password has been changed successfully!');
          }
@@ -102,7 +115,9 @@ const PasswordUpdate = (): React.ReactElement => {
          // Set loading to false to enable all fields again and provide appropriate errors
          setLoading(false);
          setOldPassword('');
-         setNewPassword('');
+         setPassword('');
+         setConfirmPassword('');
+         setPasswordValidators(passwordValidation(''));
          toast.error('Password reset error:', error.message);
       }
    };
@@ -117,97 +132,21 @@ const PasswordUpdate = (): React.ReactElement => {
             <h4>Please change your Google account password instead</h4>
          )}
          {userHasPasswordEnabledLogin && (
-            <form onSubmit={handleSubmit} className="mt-5">
-               <div className="mb-3">
-                  <label htmlFor="email" className="text-red-500">
-                     Old Password
-                  </label>
-                  <input
-                     id="password"
-                     type="password"
-                     value={oldPassword}
-                     onChange={onOldPasswordChange}
-                     className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                     placeholder="Enter Old Password"
-                     disabled={loading}
-                  />
-               </div>
-               <div className="mb-3">
-                  <label htmlFor="email" className="text-primary-300">
-                     New Password
-                  </label>
-                  <input
-                     id="password"
-                     type="password"
-                     value={newPassword}
-                     onChange={onNewPasswordChange}
-                     className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                     placeholder="Enter New Password"
-                     disabled={loading}
-                  />
-               </div>
-               <div className="mb-3">
-                  <label htmlFor="email" className="text-primary-300">
-                     Confirm New Password
-                  </label>
-                  <input
-                     id="password"
-                     type="password"
-                     value={confirmNewPassword}
-                     onChange={onConfirmNewPasswordChange}
-                     className="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-300"
-                     placeholder="Re-Enter New Password"
-                     disabled={loading}
-                  />
-               </div>
-               <div className="mb-3">
-                  <h5 className="font-bold text-base text-primary-300 mb-2">Password Requirements</h5>
-                  <ul>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.hasLowercase ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        At least one lowercase letter
-                     </li>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.hasUppercase ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        At least one uppercase letter
-                     </li>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.hasNumber ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        At least one number
-                     </li>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.hasSpecialChar ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        At least one special character
-                     </li>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.isLongEnough ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        Between 8 and 32 characters long
-                     </li>
-                     <li>
-                        <span className="inline-block w-5">
-                           {passwordValidators.passwordsMatch ? <span className="text-green-600">✓</span> : '•'}
-                        </span>
-                        Confirm password matches new password
-                     </li>
-                  </ul>
-               </div>
-               <button
-                  className="btn btn-primary"
-                  disabled={loading || !oldPassword || !newPassword || !isPasswordValid}
-               >
-                  Submit
-               </button>
-            </form>
+            <AuthForm
+               oldPassword={oldPassword}
+               onOldPasswordChange={onOldPasswordChange}
+               showOldPasswordField={true}
+               password={password}
+               onPasswordChange={onPasswordChange}
+               showPasswordField={true}
+               confirmPassword={confirmPassword}
+               onConfirmPasswordChange={onConfirmPasswordChange}
+               showPasswordValidation={true}
+               passwordValidators={passwordValidators}
+               isPasswordValid={isPasswordValid}
+               loading={loading}
+               handleSubmit={handleSubmit}
+            />
          )}
       </>
    );

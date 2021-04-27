@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '../../firebase';
 import { toast } from 'react-toastify';
 
@@ -8,6 +8,7 @@ import passwordValidation from '../../helpers/passwordValidation';
 const Register = (): React.ReactElement => {
    const [email, setEmail] = useState('');
    const [password, setPassword] = useState('');
+   const [confirmPassword, setConfirmPassword] = useState('');
    const [loading, setLoading] = useState(false);
    type PasswordValidators = {
       [key: string]: boolean;
@@ -18,12 +19,18 @@ const Register = (): React.ReactElement => {
       hasNumber: false,
       hasSpecialChar: false,
       isLongEnough: false,
+      passwordsMatch: false,
    });
 
    // Capture the user password and run it through the imported validator function. It will return the same object shape as the passwordValidators state we created.
    const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPasswordValidators(passwordValidation(e.target.value));
       setPassword(e.target.value);
+   };
+
+   // Confirm new password event handler
+   const onConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setConfirmPassword(e.target.value);
    };
 
    // Loop through the passwordValidators state and set it to false if any of the validators are false. Also break out of the loop if any are false.
@@ -40,6 +47,18 @@ const Register = (): React.ReactElement => {
    const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setEmail(e.target.value);
    };
+
+   useEffect(() => {
+      if (confirmPassword !== '' && password === confirmPassword) {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: true };
+         });
+      } else {
+         setPasswordValidators((oldState) => {
+            return { ...oldState, passwordsMatch: false };
+         });
+      }
+   }, [confirmPassword]);
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -94,6 +113,8 @@ const Register = (): React.ReactElement => {
             password={password}
             onPasswordChange={onPasswordChange}
             showPasswordField={true}
+            confirmPassword={confirmPassword}
+            onConfirmPasswordChange={onConfirmPasswordChange}
             passwordValidators={passwordValidators}
             isPasswordValid={isPasswordValid}
             showPasswordValidation={true}
