@@ -1,12 +1,45 @@
+# Standard Types
 type UserCreateResponse {
   username: String!
   email: String!
 }
 
+type Image {
+  url: String
+  public_id: String
+}
+
+type User {
+  _id: ID!
+  username: String
+  name: String
+  email: String
+  images: [Image]
+  about: String
+  createdAt: String
+  updatedAt: String
+}
+
+# Input Types
+input ImageInput {
+  url: String
+  public_id: String
+}
+
+input UserUpdateInput {
+  username: String
+  name: String
+  images: [ImageInput]
+  about: String
+}
+
+# Queries
 type Query {
   me: String!
 }
 
+# Mutations
 type Mutation {
   userCreate: UserCreateResponse!
+  userUpdate(input: UserUpdateInput): User!
 }

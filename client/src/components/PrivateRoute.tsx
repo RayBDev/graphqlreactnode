@@ -1,17 +1,20 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Route, Link } from 'react-router-dom';
+import { Route, Link, useHistory } from 'react-router-dom';
 import { AuthContext } from '../context/authContext';
 import { auth } from '../firebase';
 
 const PrivateRoute = ({ ...rest }): React.ReactElement => {
    const { state } = useContext(AuthContext);
-   const [user, setUser] = useState(false);
    const [userHasPasswordEnabledLogin, setUserHasPasswordEnabledLogin] = useState(false);
 
+   const history = useHistory();
+
+   // Check if there's a user otherwise push them to login page
    useEffect(() => {
-      state.user?.token ? setUser(true) : setUser(false);
+      state.user?.token || history.push('/login');
    }, [state.user?.token]);
 
+   // Check if the user has a password enabled login which will be used to conditionally render the Password link
    useEffect(() => {
       auth.currentUser?.providerData.forEach((loginProviderObject) => {
          if (loginProviderObject?.providerId === 'password') setUserHasPasswordEnabledLogin(true);
@@ -36,7 +39,7 @@ const PrivateRoute = ({ ...rest }): React.ReactElement => {
       </aside>
    );
 
-   const renderContent = () => (
+   return (
       <div className="container mt-24">
          <div className="grid grid-cols-12 gap-4">
             <div className="col-span-3">{navLinks}</div>
@@ -44,14 +47,6 @@ const PrivateRoute = ({ ...rest }): React.ReactElement => {
                <Route {...rest} />
             </div>
          </div>
-      </div>
-   );
-
-   return user ? (
-      renderContent()
-   ) : (
-      <div className="container mt-24">
-         <h4>Loading...</h4>
       </div>
    );
 };

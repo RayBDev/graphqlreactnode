@@ -8,7 +8,7 @@ admin.initializeApp({
 export const authCheck = async (req: e.Request) => {
   try {
     if (typeof req.headers.authtoken === 'string') {
-      // Verify the auth token in the header and if successful do something with the returned user (AKA decodedIdToken)
+      // Verify the auth token exists in the headers and if successful do something with the returned user (AKA decodedIdToken)
       const currentUser = await admin
         .auth()
         .verifyIdToken(req.headers.authtoken);

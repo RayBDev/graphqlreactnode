@@ -17,7 +17,7 @@ const PasswordForgot = (): React.ReactElement => {
       // Set Loading state to true for UX
       setLoading(true);
 
-      // Redirection config for the password reset email
+      // Firebase redirection config for the password reset email
       const actionCodeSettings = {
          url: process.env.REACT_APP_PASSWORD_RESET_EMAIL_REDIRECT,
          handleCodeInApp: true,

@@ -24,11 +24,23 @@ const userCreate = async (_: any, args: any, { req }: { req: e.Request }) => {
       }).save();
 };
 
+const userUpdate = async (_: any, args: any, { req }: { req: e.Request }) => {
+  // Get the DecodedIDToken (aka currentUser object) by running authCheck and passing in req so authCheck has access to the headers
+  const currentUser = await authCheck(req);
+  const updatedUser = await User.findOneAndUpdate(
+    { email: currentUser.email },
+    { ...args.input },
+    { new: true }
+  ).exec();
+  return updatedUser;
+};
+
 module.exports = {
   Query: {
     me,
   },
   Mutation: {
     userCreate,
+    userUpdate,
   },
 };

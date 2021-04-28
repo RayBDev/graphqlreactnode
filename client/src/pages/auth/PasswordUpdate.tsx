@@ -112,7 +112,7 @@ const PasswordUpdate = (): React.ReactElement => {
             toast.success('Your password has been changed successfully!');
          }
       } catch (error) {
-         // Set loading to false to enable all fields again and provide appropriate errors
+         // If there's a problem updating the password, set loading to false to enable all fields again and provide appropriate errors
          setLoading(false);
          setOldPassword('');
          setPassword('');

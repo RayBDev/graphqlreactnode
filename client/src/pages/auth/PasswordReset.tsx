@@ -88,8 +88,8 @@ const PasswordReset = (): React.ReactElement => {
       e.preventDefault();
       setLoading(true);
       // Field validation in case user manually enables submit button
-      if (!email || !password || !isPasswordValid) {
-         toast.error('A valid email and password is required');
+      if (!email || !password || !confirmPassword || !isPasswordValid) {
+         toast.error('A valid email, password and confirm password is required');
          return setLoading(false);
       }
 
