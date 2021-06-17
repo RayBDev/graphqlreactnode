@@ -1,3 +1,8 @@
+# Additional Scalars
+scalar DateTime
+scalar URL
+scalar EmailAddress
+
 # Standard Types
 type UserCreateResponse {
   username: String!
@@ -5,7 +10,7 @@ type UserCreateResponse {
 }
 
 type Image {
-  url: String
+  url: URL
   public_id: String
 }
 
@@ -13,16 +18,16 @@ type User {
   _id: ID!
   username: String
   name: String
-  email: String
+  email: EmailAddress
   images: [Image]
   about: String
-  createdAt: String
-  updatedAt: String
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 # Input Types
 input ImageInput {
-  url: String
+  url: URL
   public_id: String
 }
 
@@ -35,7 +40,7 @@ input UserUpdateInput {
 
 # Queries
 type Query {
-  me: String!
+  profile: User!
 }
 
 # Mutations

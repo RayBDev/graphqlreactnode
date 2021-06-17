@@ -2,10 +2,18 @@ import { authCheck } from '../helpers/auth';
 import { User } from '../models/user';
 import { nanoid } from 'nanoid';
 import e from 'express';
+import {
+  DateTimeResolver,
+  URLResolver,
+  EmailAddressResolver,
+} from 'graphql-scalars';
 
-const me = async (_: void, args: any, context: any) => {
-  await authCheck(context.req);
-  return 'Ray';
+const profile = async (_: void, args: any, { req }: { req: e.Request }) => {
+  // Get the DecodedIDToken (aka currentUser object) by running authCheck and passing in req so authCheck has access to the headers
+  const currentUser = await authCheck(req);
+
+  // Find and return the user document in MongoDB using the current logged in user's email
+  return await User.findOne({ email: currentUser.email }).exec();
 };
 
 const userCreate = async (_: any, args: any, { req }: { req: e.Request }) => {
@@ -27,6 +35,8 @@ const userCreate = async (_: any, args: any, { req }: { req: e.Request }) => {
 const userUpdate = async (_: any, args: any, { req }: { req: e.Request }) => {
   // Get the DecodedIDToken (aka currentUser object) by running authCheck and passing in req so authCheck has access to the headers
   const currentUser = await authCheck(req);
+
+  // Run the Mongoose findOneAndUpdate method by finding the document with the user's email, then providing all the args received from the mutation. Return new will return the updated user document instead of the old document. Finally, execute the findOneAndUpdate query.
   const updatedUser = await User.findOneAndUpdate(
     { email: currentUser.email },
     { ...args.input },
@@ -36,8 +46,11 @@ const userUpdate = async (_: any, args: any, { req }: { req: e.Request }) => {
 };
 
 module.exports = {
+  DateTime: DateTimeResolver,
+  URL: URLResolver,
+  EmailAddress: EmailAddressResolver,
   Query: {
-    me,
+    profile,
   },
   Mutation: {
     userCreate,
