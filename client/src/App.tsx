@@ -1,7 +1,8 @@
 import React, { useContext } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { ApolloClient, createHttpLink, InMemoryCache, ApolloProvider } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache, ApolloProvider, ApolloLink } from '@apollo/client';
+import { RetryLink } from '@apollo/client/link/retry';
 
 import { setContext } from '@apollo/client/link/context';
 import { AuthContext } from './context/authContext';
@@ -35,8 +36,20 @@ function App(): React.ReactElement {
       };
    });
 
+   const cleanTypeName = new ApolloLink((operation, forward) => {
+      if (operation.variables) {
+         const omitTypename = (key: string, value: string) => (key === '__typename' ? undefined : value);
+         operation.variables = JSON.parse(JSON.stringify(operation.variables), omitTypename);
+      }
+      return forward(operation).map((data) => {
+         return data;
+      });
+   });
+
+   const httpLinkWithErrorHandling = ApolloLink.from([cleanTypeName, new RetryLink(), httpLink]);
+
    const client = new ApolloClient({
-      link: authLink.concat(httpLink),
+      link: authLink.concat(httpLinkWithErrorHandling),
       cache: new InMemoryCache(),
    });
 

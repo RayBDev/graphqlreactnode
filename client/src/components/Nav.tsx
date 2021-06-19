@@ -76,18 +76,18 @@ const Nav = (): React.ReactElement => {
                         showMobileLinks ? 'block' : 'hidden'
                      }`}
                   >
-                     <a href="/profile" onClick={logout} className="hover:text-blue-500">
+                     <Link to="/profile" className="hover:text-blue-500">
                         Profile
-                     </a>
+                     </Link>
                   </li>
                   <li
                      className={`md:inline-block p-3 md:p-2 border-b-2 border-blue-900 md:border-none ${
                         showMobileLinks ? 'block' : 'hidden'
                      }`}
                   >
-                     <a href="/login" onClick={logout} className="hover:text-blue-500">
+                     <Link to="/login" onClick={logout} className="hover:text-blue-500">
                         Logout
-                     </a>
+                     </Link>
                   </li>
                </>
             )}

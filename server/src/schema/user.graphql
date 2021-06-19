@@ -27,13 +27,14 @@ type User {
 
 # Input Types
 input ImageInput {
-  url: URL
+  url: String
   public_id: String
 }
 
 input UserUpdateInput {
   username: String
   name: String
+  email: EmailAddress
   images: [ImageInput]
   about: String
 }
