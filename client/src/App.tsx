@@ -20,13 +20,16 @@ import PasswordForgot from './pages/auth/PasswordForgot';
 import PasswordReset from './pages/auth/PasswordReset';
 
 function App(): React.ReactElement {
+   // Grab the AuthContext state and destructure the user object from it
    const { state } = useContext(AuthContext);
    const { user } = state;
 
+   // Create the Apollo httpLink between the frontend and the backend URI
    const httpLink = createHttpLink({
       uri: process.env.REACT_APP_GRAPHQL_ENDPOINT,
    });
 
+   // Set the auth token in the headers for Apollo to send along when it makes requests to the backend
    const authLink = setContext((_, { headers }) => {
       return {
          headers: {
@@ -36,6 +39,7 @@ function App(): React.ReactElement {
       };
    });
 
+   // Remove the __typename field thats auto-added when Apollo GraphQL sends certain form fields to the backend. In this app it's removing __typename from the images form field in the Profile page.
    const cleanTypeName = new ApolloLink((operation, forward) => {
       if (operation.variables) {
          const omitTypename = (key: string, value: string) => (key === '__typename' ? undefined : value);
@@ -46,10 +50,12 @@ function App(): React.ReactElement {
       });
    });
 
-   const httpLinkWithErrorHandling = ApolloLink.from([cleanTypeName, new RetryLink(), httpLink]);
+   // Build our backend link by combining all the links we created above. We clean the __typename, make sure the client retries the server if something went wrong, send any auth token headers, and finally link to the backend.
+   const httpLinkWithErrorHandling = ApolloLink.from([cleanTypeName, new RetryLink(), authLink, httpLink]);
 
+   // Create the Apollo client by using the link we built above and set up a memory cache for the queries we make to speed up duplicate queries.
    const client = new ApolloClient({
-      link: authLink.concat(httpLinkWithErrorHandling),
+      link: httpLinkWithErrorHandling,
       cache: new InMemoryCache(),
    });
 

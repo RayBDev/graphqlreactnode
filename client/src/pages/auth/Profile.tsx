@@ -1,44 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 
-// GQL Fragment
-
-const USER_INFO = gql`
-   fragment userInfo on User {
-      _id
-      name
-      username
-      email
-      images {
-         url
-         public_id
-      }
-      about
-      createdAt
-      updatedAt
-   }
-`;
-
-// GQL Queries
-const PROFILE = gql`
-   query {
-      profile {
-         ...userInfo
-      }
-   }
-   ${USER_INFO}
-`;
-
-// GQL Mutations
-const USER_UPDATE = gql`
-   mutation userUpdate($input: UserUpdateInput!) {
-      userUpdate(input: $input) {
-         ...userInfo
-      }
-   }
-   ${USER_INFO}
-`;
+import { PROFILE } from '../../graphql/queries';
+import { USER_UPDATE } from '../../graphql/mutations';
 
 const Profile = (): React.ReactElement => {
    // State for storing form values
@@ -72,9 +37,11 @@ const Profile = (): React.ReactElement => {
 
    // Mutation
    const [userUpdate] = useMutation(USER_UPDATE, {
-      onCompleted: (data) => {
-         console.log('USER UPDATE MUTATION IN PROFILE', data);
+      onCompleted: () => {
          toast.success('Profile updated');
+      },
+      onError: (error) => {
+         toast.error(`There was an error updating your profile. Error: ${error}`);
       },
    });
 
@@ -84,6 +51,7 @@ const Profile = (): React.ReactElement => {
    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
+      // Execute the mutation using the state values as the expected "input". "Input" is predefined by the mutation setup in the backend
       userUpdate({ variables: { input: values } });
       setLoading(false);
    };
