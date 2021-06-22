@@ -8,13 +8,15 @@ import depthLimit from 'graphql-depth-limit';
 import compression from 'compression';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import { v2 as cloudinary } from 'cloudinary';
+import { nanoid } from 'nanoid';
 
 // const { makeExecutableSchema } = require('graphql-tools');
 // const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
 // const { loadFilesSync } = require('@graphql-tools/load-files');
 const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
-const { authCheck } = require('./helpers/auth');
+const { authCheckMiddleware } = require('./helpers/auth');
 
 // Create Express Server
 const app = express();
@@ -43,9 +45,10 @@ const resolvers = mergeResolvers(
   loadFilesSync(path.join(__dirname, './resolvers'))
 ); */
 
-// Add cors and gzip compression for compression as noted here https://expressjs.com/en/advanced/best-practice-performance.html
+// Add pre-flight cors and gzip compression for compression as noted here https://expressjs.com/en/advanced/best-practice-performance.html
 app.use('*', cors());
 app.use(compression());
+app.use(express.json({ limit: '5mb' }));
 
 // graphql server with validation rules
 const apolloServer = new ApolloServer({
@@ -63,9 +66,39 @@ apolloServer.applyMiddleware({ app });
 //const httpServer = http.createServer(app);
 
 // REST Endpoint
-app.get('/rest', authCheck, function (req, res) {
+app.get('/rest', authCheckMiddleware, function (req, res) {
   res.json({
     data: 'you hit the rest endpoint',
+  });
+});
+
+// Upload Image Endpoint
+app.post('/uploadimages', authCheckMiddleware, (req, res) => {
+  cloudinary.uploader.upload(
+    req.body.image,
+    {
+      resource_type: 'auto', // JPEG, PNG
+      public_id: nanoid(12), // Public Name
+    },
+    (error, result) => {
+      if (result) {
+        res.send({
+          url: result.url,
+          public_id: result.public_id,
+        });
+      } else {
+        res.status(504).send('Image server is down');
+      }
+    }
+  );
+});
+
+// Remove Image Endpoint
+app.post('/removeimage', authCheckMiddleware, (req, res) => {
+  const image_id = req.body.public_id;
+  cloudinary.uploader.destroy(image_id, (error: any, result: any) => {
+    if (error) return res.json({ success: false, error });
+    res.send('ok');
   });
 });
 
