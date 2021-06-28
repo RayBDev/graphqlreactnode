@@ -46,7 +46,7 @@ const resolvers = mergeResolvers(
 ); */
 
 // Add pre-flight cors and gzip compression for compression as noted here https://expressjs.com/en/advanced/best-practice-performance.html
-app.use('*', cors());
+app.use(cors());
 app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 
@@ -72,9 +72,16 @@ app.get('/rest', authCheckMiddleware, function (req, res) {
   });
 });
 
+// Cloudinary Config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Upload Image Endpoint
-app.post('/uploadimages', authCheckMiddleware, (req, res) => {
-  cloudinary.uploader.upload(
+app.post('/uploadimages', authCheckMiddleware, async (req, res) => {
+  await cloudinary.uploader.upload(
     req.body.image,
     {
       resource_type: 'auto', // JPEG, PNG
@@ -83,10 +90,10 @@ app.post('/uploadimages', authCheckMiddleware, (req, res) => {
     (error, result) => {
       if (result) {
         res.send({
-          url: result.url,
+          url: result.secure_url,
           public_id: result.public_id,
         });
-      } else {
+      } else if (error) {
         res.status(504).send('Image server is down');
       }
     }
@@ -94,9 +101,9 @@ app.post('/uploadimages', authCheckMiddleware, (req, res) => {
 });
 
 // Remove Image Endpoint
-app.post('/removeimage', authCheckMiddleware, (req, res) => {
+app.post('/removeimage', authCheckMiddleware, async (req, res) => {
   const image_id = req.body.public_id;
-  cloudinary.uploader.destroy(image_id, (error: any, result: any) => {
+  await cloudinary.uploader.destroy(image_id, (error: any, result: any) => {
     if (error) return res.json({ success: false, error });
     res.send('ok');
   });
