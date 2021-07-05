@@ -6,13 +6,18 @@ import { auth } from '../firebase';
 const PrivateRoute = ({ ...rest }): React.ReactElement => {
    const { state } = useContext(AuthContext);
    const [userHasPasswordEnabledLogin, setUserHasPasswordEnabledLogin] = useState(false);
+   const [count, setCount] = useState(5);
 
    const history = useHistory();
 
    // Check if there's a user otherwise push them to login page
    useEffect(() => {
-      state.user?.token || history.push('/login');
-   }, [state.user?.token]);
+      const interval = setInterval(() => {
+         setCount((currentCount) => --currentCount);
+      }, 1000);
+      if (!state.user?.token && count === 0) history.push('/login');
+      return () => clearInterval(interval);
+   }, [state.user?.token, count]);
 
    // Check if the user has a password enabled login which will be used to conditionally render the Password link
    useEffect(() => {
@@ -39,16 +44,18 @@ const PrivateRoute = ({ ...rest }): React.ReactElement => {
       </aside>
    );
 
-   return (
-      <div className="container mt-24">
-         <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-3">{navLinks}</div>
-            <div className="col-span-9">
-               <Route {...rest} />
-            </div>
+   const output = !state.user?.token ? (
+      <p className="text-center p-5 font-bold">Checking Credentials: {count}</p>
+   ) : (
+      <div className="grid grid-cols-12 gap-4">
+         <div className="col-span-3">{navLinks}</div>
+         <div className="col-span-9">
+            <Route {...rest} />
          </div>
       </div>
    );
+
+   return <div className="container mt-24">{output}</div>;
 };
 
 export default PrivateRoute;
