@@ -16,6 +16,14 @@ const profile = async (_: void, args: any, { req }: { req: e.Request }) => {
   return await User.findOne({ email: currentUser.email }).exec();
 };
 
+const publicProfile = async (_: void, args: any) => {
+  // Public profile doesn't require any auth headers so simply find the user by username
+  return await User.findOne({ username: args.username }).exec();
+};
+
+// Output all users
+const allUsers = async () => await User.find({}).exec();
+
 const userCreate = async (_: any, args: any, { req }: { req: e.Request }) => {
   // Get the DecodedIDToken (aka currentUser object) by running authCheck and passing in req so authCheck has access to the headers
   const currentUser = await authCheck(req);
@@ -51,6 +59,8 @@ module.exports = {
   EmailAddress: EmailAddressResolver,
   Query: {
     profile,
+    publicProfile,
+    allUsers,
   },
   Mutation: {
     userCreate,
