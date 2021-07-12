@@ -47,6 +47,15 @@ const Nav = (): React.ReactElement => {
                showMobileLinks ? 'translate-y-0' : '-translate-y-56'
             }`}
          >
+            <li
+               className={`md:inline-block px-3 pb-3 pt-5 md:p-2 border-b-2 border-blue-900 md:border-none ${
+                  showMobileLinks ? 'block' : 'hidden'
+               }`}
+            >
+               <Link to="/users" className="hover:text-blue-500">
+                  Users
+               </Link>
+            </li>
             {!user?.token && (
                <>
                   <li

@@ -5,7 +5,7 @@ import { authCheck } from '../helpers/auth';
 // queries
 const totalPosts = () => posts.length;
 const allPosts = async (_: void, args: any, { req }: { req: any }) => {
-  await authCheck(req);
+  // await authCheck(req);
   return posts;
 };
 

@@ -18,6 +18,8 @@ import Post from './pages/post/Post';
 import Profile from './pages/auth/Profile';
 import PasswordForgot from './pages/auth/PasswordForgot';
 import PasswordReset from './pages/auth/PasswordReset';
+import Users from './pages/Users';
+import SingleUser from './pages/SingleUser';
 
 function App(): React.ReactElement {
    // Grab the AuthContext state and destructure the user object from it
@@ -65,6 +67,7 @@ function App(): React.ReactElement {
          <ToastContainer position="bottom-right" />
          <Switch>
             <Route exact path="/" component={Home} />
+            <Route exact path="/users" component={Users} />
             <Route exact path="/register" component={Register} />
             <Route exact path="/login" component={Login} />
             <Route exact path="/password/forgot" component={PasswordForgot} />
@@ -72,6 +75,7 @@ function App(): React.ReactElement {
             <PrivateRoute exact path="/password/update" component={PasswordUpdate} />
             <PrivateRoute exact path="/profile" component={Profile} />
             <PrivateRoute exact path="/post/create" component={Post} />
+            <Route exact path="/user/:username" component={SingleUser} />
          </Switch>
       </ApolloProvider>
    );

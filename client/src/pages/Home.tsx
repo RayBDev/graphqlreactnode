@@ -1,17 +1,8 @@
 import React, { useContext } from 'react';
-import { useQuery, useLazyQuery, gql } from '@apollo/client';
+import { useQuery, useLazyQuery } from '@apollo/client';
 import { AuthContext } from '../context/authContext';
 import { useHistory } from 'react-router-dom';
-
-const GET_ALL_POSTS = gql`
-   {
-      allPosts {
-         id
-         title
-         description
-      }
-   }
-`;
+import { GET_ALL_POSTS } from '../graphql/queries';
 
 function Home(): React.ReactElement {
    type AllPosts = {
