@@ -2,37 +2,47 @@ type Post {
   """
   ID of Post
   """
-  id: ID!
+  _id: ID!
   """
-  Title of Post
+  Content of Post
   """
-  title: String!
+  content: String
+  """
+  Post Image with url and public_id
+  """
+  image: Image
   """
   Description of Post
   """
-  description: String!
+  postedBy: User
 }
 
 # input type
-input PostInput {
-  title: String!
-  description: String!
+input PostCreateInput {
+  """
+  Content of Post
+  """
+  content: String!
+  """
+  Post Image with url and public_id
+  """
+  image: ImageInput
 }
 
 type Query {
   """
-  Returns the total number of posts
-  """
-  totalPosts: Int!
-  """
   Returns all posts
   """
   allPosts: [Post!]!
+  """
+  Returns all posts of a specific user
+  """
+  postsByUser: [Post!]!
 }
 
 type Mutation {
   """
-  Add a new post
+  Create a new post
   """
-  newPost(input: PostInput!): Post!
+  postCreate(input: PostCreateInput!): Post!
 }

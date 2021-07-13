@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
 const postSchema = new mongoose.Schema(
@@ -18,11 +19,12 @@ const postSchema = new mongoose.Schema(
           'https://res.cloudinary.com/tacticapps/image/upload/v1624277410/sample.jpg',
       },
       public_id: {
-        default: Date.now,
+        type: String,
+        default: 'sample',
       },
     },
     postedBy: {
-      type: nanoid,
+      type: String,
       ref: 'User',
     },
   },
