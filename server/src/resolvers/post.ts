@@ -7,7 +7,7 @@ import { authCheck } from '../helpers/auth';
 
 // queries
 const allPosts = async () => {
-  return await Post.find({}).exec();
+  return await Post.find({}).populate('postedBy', '_id username').exec();
 };
 
 const postsByUser = async (_: void, args: any, { req }: { req: e.Request }) => {

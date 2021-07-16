@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { USER_INFO } from './fragments';
+import { USER_INFO, POST_DATA } from './fragments';
 
 export const USER_UPDATE = gql`
    mutation userUpdate($input: UserUpdateInput) {
@@ -8,4 +8,13 @@ export const USER_UPDATE = gql`
       }
    }
    ${USER_INFO}
+`;
+
+export const POST_CREATE = gql`
+   mutation postCreate($input: PostCreateInput!) {
+      postCreate(input: $input) {
+         ...postData
+      }
+   }
+   ${POST_DATA}
 `;

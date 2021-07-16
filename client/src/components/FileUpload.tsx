@@ -11,9 +11,11 @@ type Images = {
 };
 
 type Props = {
+   /** Set Loading in state */
    setLoading: (value: React.SetStateAction<boolean>) => void;
    /** userUpdate Mutation from the result of using the useMutation hook */
    userUpdate: any;
+   /** Image array with url and public_id */
    images: Images[];
 };
 
@@ -46,7 +48,8 @@ const FileUpload = ({ setLoading, userUpdate, images }: Props): React.ReactEleme
                            },
                         },
                      );
-                     // Call the userUpdate mutation and add the current and new image data from the response received
+                     // Call the userUpdate mutation and add the current and new image data from the response received. If Else used to work with multiple or single image.
+
                      await userUpdate({
                         variables: {
                            input: {
@@ -54,6 +57,7 @@ const FileUpload = ({ setLoading, userUpdate, images }: Props): React.ReactEleme
                            },
                         },
                      });
+
                      // Set Loading to false which will also trigger the useQuery hook to fire and update the state with the new image data that was just added
                      setLoading(false);
                      toast.success('Image Upload Successful');
@@ -87,7 +91,8 @@ const FileUpload = ({ setLoading, userUpdate, images }: Props): React.ReactEleme
             },
          );
 
-         // Loop through the images state and remove the image with matching public_ic
+         // Loop through the images state and remove the image with matching public_id. If there is an array then remove only the matching public_id otherwise simply set the url and public_id to blank
+
          const filteredImages = images.filter((image) => {
             return image.public_id !== public_id;
          });

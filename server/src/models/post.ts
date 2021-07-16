@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { Types } from 'mongoose';
 import { nanoid } from 'nanoid';
 
 const postSchema = new mongoose.Schema(

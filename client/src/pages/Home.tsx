@@ -5,13 +5,29 @@ import { useHistory } from 'react-router-dom';
 import { GET_ALL_POSTS } from '../graphql/queries';
 
 function Home(): React.ReactElement {
+   type PostedBy = {
+      /** ID of the user who made the post */
+      _id: number;
+      /** Username of the user you made the post */
+      username: string;
+   };
+
+   type Image = {
+      /** Post image url */
+      url: string;
+      /** Post image id */
+      public_id: string;
+   };
+
    type AllPosts = {
       /** post id received from graphql server */
-      id: number;
-      /** post title received from graphql server */
-      title: string;
+      _id: number;
+      /** post content received from graphql server */
+      content: string;
+      /** image of the post */
+      image: Image;
       /** post description received from graphql server */
-      description: string;
+      postedBy: PostedBy;
    };
 
    type AllPostsData = {
@@ -40,9 +56,9 @@ function Home(): React.ReactElement {
          <div className="grid md:grid-cols-4 gap-4">
             {data &&
                data.allPosts.map((post) => (
-                  <div className="flex flex-col rounded shadow-md p-5" key={post.id}>
-                     <h4 className="mb-2">{post.title}</h4>
-                     <p>{post.description}</p>
+                  <div className="flex flex-col rounded shadow-md p-5" key={post._id}>
+                     <h4 className="mb-2">@{post.postedBy.username}</h4>
+                     <p>{post.content}</p>
                   </div>
                ))}
             <button className="btn btn-primary" onClick={() => fetchPosts()}>
