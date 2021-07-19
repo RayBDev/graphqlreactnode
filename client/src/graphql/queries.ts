@@ -43,3 +43,12 @@ export const PUBLIC_PROFILE = gql`
       }
    }
 `;
+
+export const POSTS_BY_USER = gql`
+   query {
+      postsByUser {
+         ...postData
+      }
+   }
+   ${POST_DATA}
+`;

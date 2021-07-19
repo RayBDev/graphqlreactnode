@@ -31,7 +31,7 @@ function Users(): React.ReactElement {
 
    return (
       <div className="container p-4 mt-24">
-         <div className="grid md:grid-cols-4 gap-4">
+         <div className="grid md:grid-cols-4 gap-16">
             {data && data.allUsers.map((user) => <UserCard user={user} key={user._id} />)}
          </div>
       </div>
