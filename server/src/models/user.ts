@@ -1,7 +1,21 @@
-import mongoose from 'mongoose';
+import { model, Schema, Model, Document } from 'mongoose';
 import { nanoid } from 'nanoid';
 
-const userSchema = new mongoose.Schema(
+interface Image {
+  url: string;
+  public_id: string;
+}
+
+interface IUser extends Document {
+  _id: string;
+  username: string;
+  name: string;
+  email: string;
+  images: Image[];
+  about: string;
+}
+
+const userSchema = new Schema(
   {
     _id: {
       type: String,
@@ -38,4 +52,4 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const User = mongoose.model('User', userSchema);
+export const User: Model<IUser> = model('User', userSchema);

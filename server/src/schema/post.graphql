@@ -29,15 +29,34 @@ input PostCreateInput {
   image: ImageInput
 }
 
+input PostUpdateInput {
+  """
+  MongoDB ID of Post to Update
+  """
+  _id: String!
+  """
+  Content of Post
+  """
+  content: String!
+  """
+  Post Image with url and public_id
+  """
+  image: ImageInput
+}
+
 type Query {
   """
   Returns all posts
   """
   allPosts: [Post!]!
   """
-  Returns all posts of a specific user
+  Returns all posts for a specific user
   """
   postsByUser: [Post!]!
+  """
+  Returns specific post by id
+  """
+  singlePost(postId: String!): Post!
 }
 
 type Mutation {
@@ -45,4 +64,12 @@ type Mutation {
   Create a new post
   """
   postCreate(input: PostCreateInput!): Post!
+  """
+  Update existing post
+  """
+  postUpdate(input: PostUpdateInput!): Post!
+  """
+  Delete existing post
+  """
+  postDelete(postId: String!): Post!
 }

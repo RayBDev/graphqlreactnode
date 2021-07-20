@@ -84,19 +84,22 @@ const Post = (): React.ReactElement => {
       e.preventDefault();
       setLoading(true);
       try {
-         // Send image URI to our backend to add the resized image in the change handler to Cloudinary
-         const response = await axios.post(
-            `${process.env.REACT_APP_REST_ENDPOINT}/uploadimages`,
-            { image: imageURI },
-            {
-               headers: {
-                  authtoken: state.user?.token,
+         let postInputValues = { ...values };
+         if (imageURI) {
+            // Send image URI to our backend to add the resized image in the change handler to Cloudinary
+            const response = await axios.post(
+               `${process.env.REACT_APP_REST_ENDPOINT}/uploadimages`,
+               { image: imageURI },
+               {
+                  headers: {
+                     authtoken: state.user?.token,
+                  },
                },
-            },
-         );
+            );
 
-         // Variable to store our values in state and add the image data provided back from Cloudinary
-         const postInputValues = { ...values, image: response.data };
+            // Variable to store our values in state and add the image data provided back from Cloudinary
+            postInputValues = { ...values, image: response.data };
+         }
          // Send the values above to our backend to create a new post via GQL mutation
          await postCreate({ variables: { input: postInputValues } });
          // Reset our state values to default

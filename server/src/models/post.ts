@@ -1,7 +1,24 @@
-import mongoose from 'mongoose';
+import { model, Schema, Model, Document } from 'mongoose';
 import { nanoid } from 'nanoid';
 
-const postSchema = new mongoose.Schema(
+interface Image {
+  url: string;
+  public_id: string;
+}
+
+interface PostedBy {
+  _id: string;
+  username?: string;
+}
+
+interface Post extends Document {
+  _id: string;
+  content: string;
+  image: Image;
+  postedBy: PostedBy;
+}
+
+const postSchema = new Schema(
   {
     _id: {
       type: String,
@@ -30,4 +47,4 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Post = mongoose.model('Post', postSchema);
+export const Post: Model<Post> = model('Post', postSchema);
