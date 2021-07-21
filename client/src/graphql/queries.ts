@@ -52,3 +52,12 @@ export const POSTS_BY_USER = gql`
    }
    ${POST_DATA}
 `;
+
+export const SINGLE_POST = gql`
+   query singlePost($postId: String!) {
+      singlePost(postId: $postId) {
+         ...postData
+      }
+   }
+   ${POST_DATA}
+`;

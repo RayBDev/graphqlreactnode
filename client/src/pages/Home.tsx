@@ -8,7 +8,7 @@ import PostCard from '../components/PostCard';
 function Home(): React.ReactElement {
    type PostedBy = {
       /** ID of the user who made the post */
-      _id: number;
+      _id: string;
       /** Username of the user you made the post */
       username: string;
    };
@@ -22,7 +22,7 @@ function Home(): React.ReactElement {
 
    type AllPosts = {
       /** post id received from graphql server */
-      _id: number;
+      _id: string;
       /** post content received from graphql server */
       content: string;
       /** image of the post */

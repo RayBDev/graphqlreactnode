@@ -1,110 +1,56 @@
-import React, { useState, useContext } from 'react';
-import { toast } from 'react-toastify';
-import { useMutation, useQuery } from '@apollo/client';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import Resizer from 'react-image-file-resizer';
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 
 import { AuthContext } from '../../context/authContext';
-import { POST_CREATE, POST_DELETE } from '../../graphql/mutations';
-import { POSTS_BY_USER } from '../../graphql/queries';
-import PostCard from '../../components/PostCard';
+import { SINGLE_POST } from '../../graphql/queries';
+import { POST_UPDATE } from '../../graphql/mutations';
 
-const initialState = {
-   content: '',
-   image: {
-      url: 'https://res.cloudinary.com/tacticapps/image/upload/v1624277410/sample.jpg',
-      public_id: 'sample',
-   },
-};
-
-const Post = (): React.ReactElement => {
-   const [values, setValues] = useState(initialState);
+const PostUpdate = (): React.ReactElement => {
+   const [values, setValues] = useState({
+      _id: '',
+      content: '',
+      image: {
+         url: '',
+         public_id: '',
+      },
+   });
    const [imageURI, setImageURI] = useState('');
    const [loading, setLoading] = useState(false);
 
    // Get the AuthContext state so we can get the user token to pass to the backend
    const { state } = useContext(AuthContext);
 
-   // Type Definitions for the data we receive from the Query
-   type PostedBy = {
-      /** ID of the user who made the post */
-      _id: string;
-      /** Username of the user you made the post */
-      username: string;
-   };
+   // Destructure values
+   const { content, image } = values;
 
-   type Image = {
-      /** Post image url */
-      url: string;
-      /** Post image id */
-      public_id: string;
-   };
+   // GetSinglePost through useLazyQuery so we can execute the query within the useEffect hook
+   const [getSinglePost, { data: singlePost }] = useLazyQuery(SINGLE_POST);
 
-   type PostData = {
-      /** post id received from graphql server */
-      _id: string;
-      /** post content received from graphql server */
-      content: string;
-      /** image of the post */
-      image: Image;
-      /** post description received from graphql server */
-      postedBy: PostedBy;
-   };
+   // Get the postid from the URL parameter as specified in our routes within App.tsx
+   const { postid }: { postid: string } = useParams();
 
-   type PostsByUser = {
-      postsByUser: PostData[];
-   };
-
-   // query to get all posts by user
-   const { data: posts } = useQuery(POSTS_BY_USER);
-
-   // mutation to create a new post
-   const [postCreate] = useMutation(POST_CREATE, {
-      // update cache
-      update: (cache, { data: { postCreate } }) => {
-         // Read current data from the cache
-         const data: PostsByUser | null = cache.readQuery({
-            query: POSTS_BY_USER,
+   // Set the state values once and only when singlePost changes. Avoids setting values constantly when state changes.
+   useMemo(() => {
+      if (singlePost) {
+         setValues({
+            ...values,
+            _id: singlePost.singlePost._id,
+            content: singlePost.singlePost.content,
+            image: singlePost.singlePost.image,
          });
-
-         // Write data to the cache using the mutation result and the current cached data. The query argument is to determine the shape of the cache
-         if (data && data.postsByUser) {
-            // write Query to cache
-            cache.writeQuery({
-               query: POSTS_BY_USER,
-               data: {
-                  postsByUser: [postCreate, ...data.postsByUser],
-               },
-            });
-         }
-      },
-   });
-
-   const [postDelete] = useMutation(POST_DELETE);
-
-   const handleDelete = async (postId: string) => {
-      const answer = window.confirm('Delete?');
-      if (answer) {
-         setLoading(true);
-         try {
-            await postDelete({
-               variables: { postId },
-               refetchQueries: [{ query: POSTS_BY_USER }],
-            });
-            setLoading(false);
-            toast.success('Post deleted');
-         } catch (error) {
-            setLoading(false);
-            toast.error('Post delete failed');
-         }
       }
-   };
+   }, [singlePost]);
 
-   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      e.preventDefault();
-      // Handle change for textarea but doing it in a more universal e.target.name way in case we want to add more fields
-      setValues({ ...values, [e.target.name]: e.target.value });
-   };
+   // Get the singlePost by executing the useLazyQuery we created above
+   useEffect(() => {
+      getSinglePost({ variables: { postId: postid } });
+   }, []);
+
+   const [postUpdate] = useMutation(POST_UPDATE);
 
    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       try {
@@ -132,6 +78,12 @@ const Post = (): React.ReactElement => {
       }
    };
 
+   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      e.preventDefault();
+      // Handle change for textarea but doing it in a more universal e.target.name way in case we want to add more fields
+      setValues({ ...values, [e.target.name]: e.target.value });
+   };
+
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
@@ -151,16 +103,30 @@ const Post = (): React.ReactElement => {
 
             // Variable to store our values in state and add the image data provided back from Cloudinary
             postInputValues = { ...values, image: response.data };
+
+            // Remove the current post image as long as it's not the default sample image
+            if (image.public_id !== 'sample') {
+               await axios.post(
+                  `${process.env.REACT_APP_REST_ENDPOINT}/removeimage`,
+                  { public_id: image.public_id },
+                  {
+                     headers: {
+                        authtoken: state.user?.token,
+                     },
+                  },
+               );
+            }
          }
-         // Send the values above to our backend to create a new post via GQL mutation
-         await postCreate({ variables: { input: postInputValues } });
-         // Reset our state values to default
-         setValues(initialState);
+         // Send the values above to our backend to update the post via GQL mutation
+         await postUpdate({ variables: { input: postInputValues } });
+         console.log('post updated');
+         // Set our state values to the new values
+         setValues(postInputValues);
          // Clear the image URI in state
          setImageURI('');
          // Set loading to false and toast success
          setLoading(false);
-         toast.success('Post created successfully');
+         toast.success('Post updated successfully');
       } catch (error) {
          // Catch errors from Cloudinary and our backend server
          setLoading(false);
@@ -168,11 +134,8 @@ const Post = (): React.ReactElement => {
       }
    };
 
-   // Destructure post content from state
-   const { content } = values;
-
    // Form JSX for the textarea
-   const createForm = () => (
+   const updateForm = () => (
       <form onSubmit={handleSubmit}>
          <label htmlFor="content" className="text-primary-300">
             Post Content
@@ -193,14 +156,22 @@ const Post = (): React.ReactElement => {
       </form>
    );
 
+   const imageDisplay = (): JSX.Element => {
+      if (imageURI) {
+         return <img src={imageURI} alt="" className="h-full" />;
+      } else {
+         return <img src={image.url} alt="" className="h-full" />;
+      }
+   };
+
    return (
       <div className="p-5">
-         {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Create</h4>}
+         {loading ? <h4 className="text-red-500">Loading...</h4> : <h4>Update Post</h4>}
          <div className="grid grid-cols-12 my-10">
             <div className="col-span-3">
                <div className="mb-3">
                   <label className="text-primary-300 btn btn-primary cursor-pointer">
-                     Add Post Image
+                     Change Post Image
                      <input
                         type="file"
                         accept="image/*"
@@ -221,26 +192,13 @@ const Post = (): React.ReactElement => {
                         onClick={() => setImageURI('')}
                      />
                   </div>
-                  {imageURI && <img src={imageURI} alt="" className="h-full" />}
+                  {imageDisplay()}
                </div>
             </div>
-            <div className="col-span-12">{createForm()}</div>
-         </div>
-         <div className="grid md:grid-cols-3 gap-16">
-            {/* Loop through post data received from the GQL query */}
-            {posts &&
-               posts.postsByUser.map((post: PostData) => (
-                  <PostCard
-                     post={post}
-                     key={post._id}
-                     handleDelete={handleDelete}
-                     showDeleteButton={true}
-                     showUpdateButton={true}
-                  />
-               ))}
+            <div className="col-span-12">{updateForm()}</div>
          </div>
       </div>
    );
 };
 
-export default Post;
+export default PostUpdate;

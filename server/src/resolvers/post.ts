@@ -79,9 +79,7 @@ const postUpdate = async (_: void, args: any, { req }: { req: e.Request }) => {
   }).exec();
 
   // If currentUser id and id of the post's postedBy user id is not the same then throw an error
-  if (
-    currentUserFromDb?._id.toString() !== postToUpdate?.postedBy._id.toString()
-  )
+  if (currentUserFromDb?._id.toString() !== postToUpdate?.postedBy.toString())
     throw new Error('Unauthorized user access');
 
   // Find the post by its ID, update the post with the args provided from the client side, and return the new post details, not the old post details
@@ -90,6 +88,9 @@ const postUpdate = async (_: void, args: any, { req }: { req: e.Request }) => {
     { ...args.input },
     { new: true }
   ).exec();
+
+  // Create a linkage between the Post and User collection with the user's id and username
+  await updatedPost?.populate('postedBy', '_id username').execPopulate();
 
   return updatedPost;
 };
@@ -109,9 +110,7 @@ const postDelete = async (_: void, args: any, { req }: { req: e.Request }) => {
   }).exec();
 
   // If currentUser id and id of the post's postedBy user id is not the same then throw an error
-  if (
-    currentUserFromDb?._id.toString() !== postToDelete?.postedBy._id.toString()
-  )
+  if (currentUserFromDb?._id.toString() !== postToDelete?.postedBy.toString())
     throw new Error('Unauthorized user access');
 
   // Find the post by its ID, update the post with the args provided from the client side, and return the new post details, not the old post details
