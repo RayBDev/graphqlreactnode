@@ -61,6 +61,10 @@ type Query {
   Returns specific post by id
   """
   singlePost(postId: String!): Post!
+  """
+  Returns an array of posts based on a query string
+  """
+  search(query: String!): [Post]
 }
 
 type Mutation {

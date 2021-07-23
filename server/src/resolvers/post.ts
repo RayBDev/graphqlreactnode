@@ -14,7 +14,7 @@ const allPosts = async (_: void, args: any) => {
   // The page in the pagination tree to display
   const currentPage = args.page || 1;
   // The number of posts to display per page
-  const perPage = 3;
+  const perPage = 4;
 
   // Skip posts not meant to be on the requested page and also limit the posts for that page to our predefined number i.e. 3.
   return await Post.find({})
@@ -43,6 +43,12 @@ const postsByUser = async (_: void, args: any, { req }: { req: e.Request }) => {
 const singlePost = async (_: void, args: any) => {
   // Return a single post found by id and populate the postedBy field with the id and username
   return await Post.findById({ _id: args.postId })
+    .populate('postedBy', '_id username')
+    .exec();
+};
+
+const search = async (_: void, { query }: { query: string }) => {
+  return await Post.find({ $text: { $search: query } })
     .populate('postedBy', '_id username')
     .exec();
 };
@@ -138,6 +144,7 @@ const resolverMap: IResolvers = {
     postsByUser,
     singlePost,
     totalPosts,
+    search,
   },
   Mutation: {
     postCreate,

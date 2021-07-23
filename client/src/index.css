@@ -54,4 +54,7 @@
    .btn-warning {
       @apply bg-red-500 text-white hover:bg-red-700 focus:ring-red-400 disabled:bg-white disabled:text-red-500 disabled:cursor-not-allowed;
    }
+   .btn-outline {
+      @apply border border-primary-500 text-primary-500 hover:bg-gray-300 focus:ring-primary-500 disabled:bg-white disabled:text-primary-500 disabled:cursor-not-allowed;
+   }
 }

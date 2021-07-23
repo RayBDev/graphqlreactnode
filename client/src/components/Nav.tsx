@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { auth } from '../firebase';
 import { AuthContext } from '../context/authContext';
+import Search from './Search';
 
 const Nav = (): React.ReactElement => {
    const { state, dispatch } = useContext(AuthContext);
@@ -119,11 +120,7 @@ const Nav = (): React.ReactElement => {
                   </svg>
                </span>
 
-               <input
-                  type="text"
-                  className="w-full py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-                  placeholder="Search"
-               />
+               <Search />
             </div>
          </div>
       </nav>

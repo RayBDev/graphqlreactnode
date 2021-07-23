@@ -14,7 +14,7 @@ type Props = {
 };
 
 const PostPagination = ({ page, setPage, postCount }: Props): React.ReactElement => {
-   let totalPages = Math.ceil(postCount && postCount.totalPosts / 3);
+   let totalPages = Math.ceil(postCount && postCount.totalPosts / 4);
 
    const pagination = () => {
       if (totalPages > 10) totalPages = 10;
@@ -37,7 +37,7 @@ const PostPagination = ({ page, setPage, postCount }: Props): React.ReactElement
    };
 
    return (
-      <ul className="flex justify-center">
+      <ul className="flex justify-center my-5">
          <li className="my-3">
             <button
                className={`rounded-full w-16 h-7 ${page === 1 && 'disabled'} hover:bg-primary-100 transition-colors`}

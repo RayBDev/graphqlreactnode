@@ -67,3 +67,12 @@ export const SINGLE_POST = gql`
    }
    ${POST_DATA}
 `;
+
+export const SEARCH = gql`
+   query search($query: String!) {
+      search(query: $query) {
+         ...postData
+      }
+   }
+   ${POST_DATA}
+`;
