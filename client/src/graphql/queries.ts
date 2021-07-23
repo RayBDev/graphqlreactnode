@@ -1,6 +1,12 @@
 import { gql } from '@apollo/client';
 import { USER_INFO, POST_DATA } from './fragments';
 
+export const TOTAL_POSTS = gql`
+   query {
+      totalPosts
+   }
+`;
+
 export const PROFILE = gql`
    query {
       profile {
@@ -11,8 +17,8 @@ export const PROFILE = gql`
 `;
 
 export const GET_ALL_POSTS = gql`
-   {
-      allPosts {
+   query allPosts($page: Int) {
+      allPosts(page: $page) {
          ...postData
       }
    }

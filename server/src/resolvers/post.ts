@@ -6,9 +6,21 @@ import { Post } from '../models/post';
 import { authCheck } from '../helpers/auth';
 
 // QUERIES
-const allPosts = async () => {
+const totalPosts = async (_: void, args: any) => {
+  return await Post.find({}).estimatedDocumentCount().exec();
+};
+
+const allPosts = async (_: void, args: any) => {
+  // The page in the pagination tree to display
+  const currentPage = args.page || 1;
+  // The number of posts to display per page
+  const perPage = 3;
+
+  // Skip posts not meant to be on the requested page and also limit the posts for that page to our predefined number i.e. 3.
   return await Post.find({})
+    .skip((currentPage - 1) * perPage)
     .populate('postedBy', '_id username')
+    .limit(perPage)
     .sort({ createdAt: -1 })
     .exec();
 };
@@ -125,6 +137,7 @@ const resolverMap: IResolvers = {
     allPosts,
     postsByUser,
     singlePost,
+    totalPosts,
   },
   Mutation: {
     postCreate,

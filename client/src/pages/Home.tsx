@@ -1,11 +1,14 @@
-import React, { useContext } from 'react';
-import { useQuery, useLazyQuery } from '@apollo/client';
+import React, { useContext, useState } from 'react';
+import { useQuery } from '@apollo/client';
 import { AuthContext } from '../context/authContext';
 import { useHistory } from 'react-router-dom';
-import { GET_ALL_POSTS } from '../graphql/queries';
+import { GET_ALL_POSTS, TOTAL_POSTS } from '../graphql/queries';
 import PostCard from '../components/PostCard';
+import PostPagination from '../components/PostPagination';
 
 function Home(): React.ReactElement {
+   const [page, setPage] = useState(1);
+
    type PostedBy = {
       /** ID of the user who made the post */
       _id: string;
@@ -36,8 +39,9 @@ function Home(): React.ReactElement {
       allPosts: AllPosts[];
    };
 
-   const { data, loading } = useQuery<AllPostsData>(GET_ALL_POSTS);
-   const [fetchPosts, { data: posts }] = useLazyQuery<AllPostsData>(GET_ALL_POSTS);
+   const { data, loading } = useQuery<AllPostsData>(GET_ALL_POSTS, { variables: { page } });
+   const { data: postCount } = useQuery(TOTAL_POSTS);
+
    // access context
    const { state, dispatch } = useContext(AuthContext);
    // react router
@@ -56,16 +60,13 @@ function Home(): React.ReactElement {
       <div className="container p-4 mt-24">
          <div className="grid md:grid-cols-4 gap-16">
             {data && data.allPosts.map((post) => <PostCard post={post} key={post._id} />)}
-            <button className="btn btn-primary" onClick={() => fetchPosts()}>
-               Fetch Posts
-            </button>
-            {JSON.stringify(posts)}
             {JSON.stringify(state.user)}
             <button className="btn btn-primary" onClick={updateUserName}>
                Change User Name
             </button>
             {JSON.stringify(history)}
          </div>
+         <PostPagination page={page} setPage={setPage} postCount={postCount} />
       </div>
    );
 }

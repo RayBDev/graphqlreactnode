@@ -46,9 +46,13 @@ input PostUpdateInput {
 
 type Query {
   """
-  Returns all posts
+  Returns total number of posts
   """
-  allPosts: [Post!]!
+  totalPosts: Int!
+  """
+  Returns all posts for a specific page (pagination)
+  """
+  allPosts(page: Int): [Post!]!
   """
   Returns all posts for a specific user
   """

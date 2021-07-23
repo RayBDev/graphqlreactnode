@@ -21,6 +21,7 @@ import PasswordReset from './pages/auth/PasswordReset';
 import Users from './pages/Users';
 import SingleUser from './pages/SingleUser';
 import PostUpdate from './pages/post/PostUpdate';
+import SinglePost from './pages/post/SinglePost';
 
 function App(): React.ReactElement {
    // Grab the AuthContext state and destructure the user object from it
@@ -78,6 +79,7 @@ function App(): React.ReactElement {
             <PrivateRoute exact path="/post/create" component={Post} />
             <PrivateRoute exact path="/post/update/:postid" component={PostUpdate} />
             <Route exact path="/user/:username" component={SingleUser} />
+            <Route exact path="/post/:postid" component={SinglePost} />
          </Switch>
       </ApolloProvider>
    );

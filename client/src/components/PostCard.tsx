@@ -58,7 +58,9 @@ const PostCard = ({
    return (
       <div className="flex flex-col rounded shadow-md p-10">
          <div className="border border-gray-400 p-1 rounded mb-5 m-auto">
-            <img src={image.url} alt={postedBy.username} className="w-full" />
+            <Link to={`/post/${_id}`}>
+               <img src={image.url} alt={postedBy.username} className="w-full" />
+            </Link>
          </div>
          <Link to={`/user/${postedBy.username}`}>
             <h4 className="mb-4 text-primary-300">@{postedBy.username}</h4>
