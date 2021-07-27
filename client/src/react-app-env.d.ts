@@ -4,6 +4,7 @@ declare namespace NodeJS {
       NODE_ENV: 'development' | 'production' | 'test';
       PUBLIC_URL: string;
       REACT_APP_GRAPHQL_ENDPOINT: string;
+      REACT_APP_GRAPHQL_WS_ENDPOINT: string;
       REACT_APP_CONFIRMATION_EMAIL_REDIRECT: string;
       REACT_APP_PASSWORD_RESET_EMAIL_REDIRECT: string;
       REACT_APP_REST_ENDPOINT: string;

@@ -1,7 +1,9 @@
 import React, { useContext } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { ApolloClient, createHttpLink, InMemoryCache, ApolloProvider, ApolloLink } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache, ApolloProvider, ApolloLink, split } from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { WebSocketLink } from '@apollo/client/link/ws';
 import { RetryLink } from '@apollo/client/link/retry';
 
 import { setContext } from '@apollo/client/link/context';
@@ -55,8 +57,26 @@ function App(): React.ReactElement {
       });
    });
 
-   // Build our backend link by combining all the links we created above. We clean the __typename, make sure the client retries the server if something went wrong, send any auth token headers, and finally link to the backend.
-   const httpLinkWithErrorHandling = ApolloLink.from([cleanTypeName, new RetryLink(), authLink, httpLink]);
+   // Create a Web Socket Link for our realtime subscription server
+   const wsLink = new WebSocketLink({
+      uri: process.env.REACT_APP_GRAPHQL_WS_ENDPOINT,
+      options: {
+         reconnect: true,
+      },
+   });
+
+   // Use the split function to use either WebSockets or HTTP based on the type of operation being executed.
+   const splitLink = split(
+      ({ query }) => {
+         const definition = getMainDefinition(query);
+         return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
+      },
+      wsLink,
+      httpLink,
+   );
+
+   // Build our backend link by combining all the links we created above. We clean the __typename, make sure the client retries the server if something went wrong, send any auth token headers, and finally link to the backend based on whether it's a subscription or http operation.
+   const httpLinkWithErrorHandling = ApolloLink.from([cleanTypeName, new RetryLink(), authLink, splitLink]);
 
    // Create the Apollo client by using the link we built above and set up a memory cache for the queries we make to speed up duplicate queries.
    const client = new ApolloClient({

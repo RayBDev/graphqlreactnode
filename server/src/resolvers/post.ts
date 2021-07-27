@@ -4,6 +4,9 @@ import e from 'express';
 import { User } from '../models/user';
 import { Post } from '../models/post';
 import { authCheck } from '../helpers/auth';
+import { PubSub } from 'apollo-server-express';
+
+const pubsub = new PubSub();
 
 // QUERIES
 const totalPosts = async (_: void, args: any) => {
@@ -75,6 +78,9 @@ const postCreate = async (_: void, args: any, { req }: { req: e.Request }) => {
   // Create a linkage between the Post and User collection with the user's id and username
   await newPost.populate('postedBy', '_id username').execPopulate();
 
+  // Publish the subscription and return the newPost for the subscribers to see
+  pubsub.publish(POST_ADDED, { postAdded: newPost });
+
   // Return the newPost document
   return newPost;
 };
@@ -137,6 +143,9 @@ const postDelete = async (_: void, args: any, { req }: { req: e.Request }) => {
   return deletedPost;
 };
 
+// Subscriptions
+const POST_ADDED = 'POST_ADDED';
+
 // Build out the resolver map and set it's type
 const resolverMap: IResolvers = {
   Query: {
@@ -150,6 +159,11 @@ const resolverMap: IResolvers = {
     postCreate,
     postUpdate,
     postDelete,
+  },
+  Subscription: {
+    postAdded: {
+      subscribe: () => pubsub.asyncIterator([POST_ADDED]),
+    },
   },
 };
 

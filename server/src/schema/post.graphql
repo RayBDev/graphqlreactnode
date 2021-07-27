@@ -44,6 +44,7 @@ input PostUpdateInput {
   image: ImageInput
 }
 
+# Query Types
 type Query {
   """
   Returns total number of posts
@@ -67,6 +68,7 @@ type Query {
   search(query: String!): [Post]
 }
 
+# Mutation Types
 type Mutation {
   """
   Create a new post
@@ -80,4 +82,9 @@ type Mutation {
   Delete existing post
   """
   postDelete(postId: String!): Post!
+}
+
+# Subscription Types
+type Subscription {
+  postAdded: Post
 }

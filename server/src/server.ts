@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
-//const http = require('http');
+import http from 'http';
 //const path = require('path');
 import depthLimit from 'graphql-depth-limit';
 import compression from 'compression';
@@ -54,7 +54,7 @@ app.use(express.json({ limit: '5mb' }));
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req, res }) => ({ req, res }),
+  context: ({ req }) => ({ req }),
   validationRules: [depthLimit(7)],
 });
 
@@ -63,7 +63,8 @@ const apolloServer = new ApolloServer({
 apolloServer.applyMiddleware({ app });
 
 // server
-//const httpServer = http.createServer(app);
+const httpServer = http.createServer(app);
+apolloServer.installSubscriptionHandlers(httpServer);
 
 // REST Endpoint
 app.get('/rest', authCheckMiddleware, function (req, res) {
@@ -110,9 +111,12 @@ app.post('/removeimage', authCheckMiddleware, async (req, res) => {
 });
 
 // PORT Setup
-app.listen(process.env.PORT, function () {
+httpServer.listen(process.env.PORT, function () {
   console.log(`REST Server running on http://localhost:${process.env.PORT}`);
   console.log(
     `GQL Server running on http://localhost:${process.env.PORT}${apolloServer.graphqlPath}`
+  );
+  console.log(
+    `Subscription server is ready at http://localhost:${process.env.PORT}${apolloServer.subscriptionsPath}`
   );
 });
