@@ -1,9 +1,10 @@
-import React, { useContext, useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { AuthContext } from '../context/authContext';
+import React, { useState } from 'react';
+import { useQuery, useSubscription } from '@apollo/client';
 import { GET_ALL_POSTS, TOTAL_POSTS } from '../graphql/queries';
+import { POST_ADDED, POST_UPDATED, POST_DELETED } from '../graphql/subscriptions';
 import PostCard from '../components/PostCard';
 import PostPagination from '../components/PostPagination';
+import { toast } from 'react-toastify';
 
 function Home(): React.ReactElement {
    const [page, setPage] = useState(1);
@@ -38,11 +39,86 @@ function Home(): React.ReactElement {
       allPosts: AllPosts[];
    };
 
-   const { data, loading } = useQuery<AllPostsData>(GET_ALL_POSTS, { variables: { page } });
+   // Queries
+   const { data, loading, refetch } = useQuery<AllPostsData>(GET_ALL_POSTS, {
+      variables: { page },
+      fetchPolicy: 'cache-and-network',
+   });
+   // const { data: nextPageData } = useQuery<AllPostsData>(GET_ALL_POSTS, { variables: { page: page + 1 } });
    const { data: postCount } = useQuery(TOTAL_POSTS);
 
-   // access context
-   const { state } = useContext(AuthContext);
+   // Subscriptions
+
+   // Post Added
+   useSubscription(POST_ADDED, {
+      onSubscriptionData: ({ client: { cache }, subscriptionData: { data } }) => {
+         // readQuery from cache
+         const queryData: AllPostsData | null = cache.readQuery({
+            query: GET_ALL_POSTS,
+            variables: { page },
+         });
+
+         // write back to cache
+         if (queryData && queryData.allPosts) {
+            // Remove the last post from the page before adding the new post for consistent UI experience
+            const queryDataLessOne = [];
+            for (let i = 0; i < queryData.allPosts.length - 1; i++) {
+               queryDataLessOne.push(queryData.allPosts[i]);
+            }
+
+            // Write to cache with new post and array with one removed post
+            cache.writeQuery({
+               query: GET_ALL_POSTS,
+               variables: { page },
+               data: {
+                  allPosts: [data.postAdded, ...queryDataLessOne],
+               },
+            });
+         }
+
+         // May need to refetch all posts to update ui when several posts are added at once. Avoiding this for now to avoid multiple server calls. UselazyQuery here if necessary.
+
+         // show toast notification
+         toast.success('New Post!');
+      },
+   });
+
+   // POST UPDATED
+   useSubscription(POST_UPDATED, {
+      onSubscriptionData: () => toast.success('Post Updated!'),
+   });
+
+   // POST DELETED
+   useSubscription(POST_DELETED, {
+      onSubscriptionData: () => {
+         /* // readQuery from cache
+         const queryData: AllPostsData | null = cache.readQuery({
+            query: GET_ALL_POSTS,
+            variables: { page },
+         });
+
+         if (queryData && queryData.allPosts) {
+            console.log(nextPageData);
+            const filteredPosts = queryData.allPosts.filter((post) => post._id !== data.postDeleted._id);
+
+            if (nextPageData && nextPageData.allPosts) filteredPosts.push(nextPageData?.allPosts[0]);
+
+            // Write to cache with new post and array with one removed post
+            cache.writeQuery({
+               query: GET_ALL_POSTS,
+               variables: { page },
+               data: {
+                  allPosts: filteredPosts,
+               },
+            });
+         } */
+
+         refetch();
+
+         // show toast notification
+         toast.error('Post Deleted!');
+      },
+   });
 
    if (loading) return <p className="p-5">Loading...</p>;
 
@@ -52,7 +128,6 @@ function Home(): React.ReactElement {
             {data && data.allPosts.map((post) => <PostCard post={post} key={post._id} />)}
          </div>
          <PostPagination page={page} setPage={setPage} postCount={postCount} />
-         {JSON.stringify(state.user)}
       </div>
    );
 }

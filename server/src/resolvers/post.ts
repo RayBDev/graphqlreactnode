@@ -8,6 +8,11 @@ import { PubSub } from 'apollo-server-express';
 
 const pubsub = new PubSub();
 
+// Subscriptions
+const POST_ADDED = 'POST_ADDED';
+const POST_UPDATED = 'POST_UPDATED';
+const POST_DELETED = 'POST_DELETED';
+
 // QUERIES
 const totalPosts = async (_: void, args: any) => {
   return await Post.find({}).estimatedDocumentCount().exec();
@@ -79,7 +84,7 @@ const postCreate = async (_: void, args: any, { req }: { req: e.Request }) => {
   await newPost.populate('postedBy', '_id username').execPopulate();
 
   // Publish the subscription and return the newPost for the subscribers to see
-  pubsub.publish(POST_ADDED, { postAdded: newPost });
+  await pubsub.publish(POST_ADDED, { postAdded: newPost });
 
   // Return the newPost document
   return newPost;
@@ -116,6 +121,9 @@ const postUpdate = async (_: void, args: any, { req }: { req: e.Request }) => {
   // Create a linkage between the Post and User collection with the user's id and username
   await updatedPost?.populate('postedBy', '_id username').execPopulate();
 
+  // Publish the subscription and return the updatedPost for the subscribers to see
+  await pubsub.publish(POST_UPDATED, { postUpdated: updatedPost });
+
   return updatedPost;
 };
 
@@ -138,13 +146,16 @@ const postDelete = async (_: void, args: any, { req }: { req: e.Request }) => {
     throw new Error('Unauthorized user access');
 
   // Find the post by its ID, update the post with the args provided from the client side, and return the new post details, not the old post details
-  let deletedPost = await Post.findByIdAndDelete({ _id: args.postId }).exec();
+  const deletedPost = await Post.findByIdAndDelete({ _id: args.postId }).exec();
+
+  // Create a linkage between the Post and User collection with the user's id and username
+  await deletedPost?.populate('postedBy', '_id username').execPopulate();
+
+  // Publish the subscription and return the deletedPost for the subscribers to see
+  await pubsub.publish(POST_DELETED, { postDeleted: deletedPost });
 
   return deletedPost;
 };
-
-// Subscriptions
-const POST_ADDED = 'POST_ADDED';
 
 // Build out the resolver map and set it's type
 const resolverMap: IResolvers = {
@@ -163,6 +174,12 @@ const resolverMap: IResolvers = {
   Subscription: {
     postAdded: {
       subscribe: () => pubsub.asyncIterator([POST_ADDED]),
+    },
+    postUpdated: {
+      subscribe: () => pubsub.asyncIterator([POST_UPDATED]),
+    },
+    postDeleted: {
+      subscribe: () => pubsub.asyncIterator([POST_DELETED]),
     },
   },
 };

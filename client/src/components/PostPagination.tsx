@@ -21,7 +21,7 @@ const PostPagination = ({ page, setPage, postCount }: Props): React.ReactElement
       const pages = [];
       for (let i = 1; i <= totalPages; i++) {
          pages.push(
-            <li className="m-3">
+            <li key={i} className="m-3">
                <button
                   className={`rounded-full w-8 h-7 ${
                      page === i && 'bg-primary-300'
